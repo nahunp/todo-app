@@ -2,11 +2,11 @@
 
 A Todo app built step by step to learn Clean Architecture, SOLID principles, and design patterns — .NET (backend) + Angular (frontend) + SQL Server, deploying to Azure eventually.
 
-[![Backend CI (development)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml/badge.svg?branch=development)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml)
-[![Backend CI (release)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml/badge.svg?branch=release)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml)
-[![Backend CI (master)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml/badge.svg?branch=master)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml)
+| [`development`](https://github.com/nahunp/todo-app/tree/development) | [`release`](https://github.com/nahunp/todo-app/tree/release) | [`master`](https://github.com/nahunp/todo-app/tree/master) |
+|:---:|:---:|:---:|
+| [![development](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-ci.yml?branch=development&label=development)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml?query=branch%3Adevelopment) | [![release](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-ci.yml?branch=release&label=release)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml?query=branch%3Arelease) | [![master](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-ci.yml?branch=master&label=master)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml?query=branch%3Amaster) |
 
-The badges above are live: green means the latest commit on that branch builds and every test passes, red means something's broken. Same colored checkmark/X shows up on every commit and every pull request.
+All three are the same `Backend CI` workflow (`backend-ci.yml`) — the columns just run left to right in promotion order, matching the `development` → `release` → `master` pipeline described below, so each badge's label names its own branch instead of all three saying the same thing. Every badge is live: green means the latest commit on that branch builds and every test passes, red means something's broken. Click a badge to jump straight to that branch's run history.
 
 ## Structure
 
