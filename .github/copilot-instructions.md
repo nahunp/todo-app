@@ -33,14 +33,19 @@ Local dev API base URL: `http://localhost:5080` (see `backend/src/WebApi/Propert
 - Auth/security scheme: not designed yet. If the API contract doesn't show
   an auth requirement, don't add one speculatively.
 
-## Not yet decided — check `frontend/` itself once it exists
+## What `ng new` actually scaffolded
 
-`ng new` interactively picks some things (testing framework — Karma/Jasmine
-vs. Jest/Vitest — SCSS vs. plain CSS, routing) that aren't fixed yet as of
-this file being written. Whatever's actually in `frontend/angular.json` and
-`package.json` is the real answer, not this document — update this section
-once the scaffold exists if the actual choices diverge from assumptions
-made here.
+- **Angular 22.1**, standalone components, routing enabled.
+- **Vitest** for unit tests (`@angular/build:unit-test` builder) — not
+  Karma/Jasmine. `npm test` runs once and exits; no watch-mode flags needed.
+- **Plain CSS**, no SCSS — kept simple on purpose for an app this size.
+- **No SSR** — this is a client-rendered SPA talking to a separate API, SSR's
+  hydration complexity buys nothing here.
+- Node 24.x in CI (`frontend-ci.yml`), matching what was verified locally.
+
+If any of the above stops being true (someone adds SCSS, switches test
+runners, etc.), update this section — it should track `frontend/`'s actual
+`package.json`/`angular.json`, not the other way around.
 
 ## CI
 

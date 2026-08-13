@@ -2,11 +2,19 @@
 
 A Todo app built step by step to learn Clean Architecture, SOLID principles, and design patterns — .NET (backend) + Angular (frontend) + SQL Server, deploying to Azure eventually.
 
+**Backend** (`backend-ci.yml`, triggers on `backend/**`):
+
 | [`development`](https://github.com/nahunp/todo-app/tree/development) | [`release`](https://github.com/nahunp/todo-app/tree/release) | [`master`](https://github.com/nahunp/todo-app/tree/master) |
 |:---:|:---:|:---:|
 | [![development](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-ci.yml?branch=development&label=development)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml?query=branch%3Adevelopment) | [![release](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-ci.yml?branch=release&label=release)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml?query=branch%3Arelease) | [![master](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-ci.yml?branch=master&label=master)](https://github.com/nahunp/todo-app/actions/workflows/backend-ci.yml?query=branch%3Amaster) |
 
-All three are the same `Backend CI` workflow (`backend-ci.yml`) — the columns just run left to right in promotion order, matching the `development` → `release` → `master` pipeline described below, so each badge's label names its own branch instead of all three saying the same thing. Every badge is live: green means the latest commit on that branch builds and every test passes, red means something's broken. Click a badge to jump straight to that branch's run history.
+**Frontend** (`frontend-ci.yml`, triggers on `frontend/**`):
+
+| [`development`](https://github.com/nahunp/todo-app/tree/development) | [`release`](https://github.com/nahunp/todo-app/tree/release) | [`master`](https://github.com/nahunp/todo-app/tree/master) |
+|:---:|:---:|:---:|
+| [![development](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/frontend-ci.yml?branch=development&label=development)](https://github.com/nahunp/todo-app/actions/workflows/frontend-ci.yml?query=branch%3Adevelopment) | [![release](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/frontend-ci.yml?branch=release&label=release)](https://github.com/nahunp/todo-app/actions/workflows/frontend-ci.yml?query=branch%3Arelease) | [![master](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/frontend-ci.yml?branch=master&label=master)](https://github.com/nahunp/todo-app/actions/workflows/frontend-ci.yml?query=branch%3Amaster) |
+
+Each row's three columns run left to right in promotion order, matching the `development` → `release` → `master` pipeline described below, so each badge's label names its own branch. Every badge is live: green means the latest commit on that branch builds and every test passes, red means something's broken (or, for frontend, that nothing has touched `frontend/` on that branch yet). Click a badge to jump straight to that branch's run history.
 
 ## Structure
 

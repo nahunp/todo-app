@@ -29,7 +29,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22.x
+          node-version: 24.x
           cache: npm
           cache-dependency-path: frontend/package-lock.json
 
@@ -41,12 +41,11 @@ jobs:
         working-directory: frontend
         run: npm run build
 
-      # Angular CLI's default `ng test` runs Karma against a real browser,
-      # which needs --watch=false (otherwise it never exits) and a headless
-      # browser flag. If frontend/ ends up scaffolded with Jest/Vitest
-      # instead, this step's command needs to change to match whatever
-      # `npm test` actually does — check package.json's "test" script once
-      # frontend/ exists rather than trusting this comment.
+      # `ng test` here runs on Vitest (Angular CLI's @angular/build:unit-test
+      # builder, scaffolded default as of Angular 22), not Karma — it runs
+      # once and exits on its own, no --watch=false/--browsers flags needed.
+      # Verified locally before assuming it: a plain `npm test` already
+      # completes cleanly without hanging.
       - name: Test
         working-directory: frontend
-        run: npm test -- --watch=false --browsers=ChromeHeadless
+        run: npm test
