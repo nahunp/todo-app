@@ -19,7 +19,13 @@
     <PackageReference Include="FluentValidation" Version="11.9.2" />
     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <!--
+      8.0.2, not 8.0.1: EF Core 8.0.10 pulls in Microsoft.Extensions.Caching.Memory
+      8.0.1, which itself requires DependencyInjection.Abstractions >= 8.0.2.
+      Pinning below that is a package downgrade, which NuGet treats as a
+      restore error, not just a warning.
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
