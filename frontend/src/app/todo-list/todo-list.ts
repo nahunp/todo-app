@@ -1,5 +1,18 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
+import { catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+
+// Typed models matching the API contract
+export interface CreateTodoListCommand {
+  name?: string | null;
+}
+
+export interface TodoListDto {
+  id: number; // backend uses int for Id
+  name?: string | null;
+}
 
 @Component({
   selector: 'app-todo-list',
@@ -9,7 +22,9 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./todo-list.css'],
 })
 export class TodoList implements OnInit {
-  todoLists = signal<Array<{ id?: string; name?: string }>>([]);
+  private http = inject(HttpClient);
+
+  todoLists = signal<TodoListDto[]>([]);
   loading = signal(true);
   error = signal('');
 
@@ -17,45 +32,38 @@ export class TodoList implements OnInit {
     this.load();
   }
 
-  async load() {
+  load() {
     this.loading.set(true);
     this.error.set('');
-    try {
-      const res = await fetch('/api/todolists');
-      if (!res.ok) {
-        if (res.status === 404) {
-          this.todoLists.set([]);
-          this.error.set('GET /api/todolists not implemented on backend (404).');
-        } else {
-          const text = await res.text();
-          throw new Error(`${res.status} ${res.statusText}: ${text}`);
-        }
-      } else {
-        const data = await res.json();
+    // HttpClient returns typed responses; proxy (or base URL) will forward to backend
+    this.http.get<TodoListDto[]>('/api/todolists')
+      .pipe(
+        catchError((err) => {
+          if (err?.status === 404) {
+            this.todoLists.set([]);
+            this.error.set('GET /api/todolists not implemented on backend (404).');
+            return of([] as TodoListDto[]);
+          }
+          this.error.set(err?.message ?? String(err));
+          return of([] as TodoListDto[]);
+        })
+      )
+      .subscribe((data) => {
         this.todoLists.set(Array.isArray(data) ? data : []);
-      }
-    } catch (err: any) {
-      this.error.set(err?.message ?? String(err));
-    } finally {
-      this.loading.set(false);
-    }
+        this.loading.set(false);
+      });
   }
 
-  async create(name: string) {
+  create(name: string) {
     if (!name) return;
-    try {
-      const res = await fetch('/api/todolists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name }),
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`${res.status} ${res.statusText}: ${text}`);
-      }
-      await this.load();
-    } catch (err: any) {
-      this.error.set(err?.message ?? String(err));
-    }
+    const body: CreateTodoListCommand = { name };
+    this.http.post<void>('/api/todolists', body)
+      .pipe(
+        catchError((err) => {
+          this.error.set(err?.message ?? String(err));
+          return of(null);
+        })
+      )
+      .subscribe(() => this.load());
   }
 }
