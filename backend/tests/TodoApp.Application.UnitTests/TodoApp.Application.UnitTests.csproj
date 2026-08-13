@@ -21,7 +21,13 @@
     </PackageReference>
     <!-- Matches TodoApp.Application's EF Core version exactly, on purpose. -->
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.10" />
-    <PackageReference Include="FluentValidation.TestHelper" Version="11.9.2" />
+    <!--
+      No separate FluentValidation.TestHelper package — that's not a thing.
+      TestValidate()/ShouldHaveValidationErrorFor() live in the
+      FluentValidation.TestHelper *namespace*, inside the core
+      FluentValidation package itself, which flows in transitively via the
+      ProjectReference to TodoApp.Application below.
+    -->
   </ItemGroup>
 
   <ItemGroup>
