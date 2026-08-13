@@ -1,0 +1,71 @@
+name: Promote development to release
+
+# Stage 1 of the release pipeline: development -> release -> master.
+# Simulates a staging promotion — daily, same cadence the old direct
+# development->master promotion used to run on. See
+# promote-release-to-master.yml for stage 2.
+#
+# Requires a repo secret PROMOTE_TOKEN — a Personal Access Token, NOT the
+# default GITHUB_TOKEN. Reason: GitHub refuses to let a PR/push made with
+# the default GITHUB_TOKEN trigger other workflows (loop prevention). If we
+# used it here, the pull_request-triggered build-and-test check — the one
+# release's branch protection requires before merging — would simply never
+# run on this bot-opened PR, and it would sit stuck forever.
+on:
+  schedule:
+    # 00:00 America/Mexico_City. Mexico dropped DST nationwide in 2022
+    # (border-strip municipalities excepted), so Mexico City is a fixed
+    # UTC-6 year round — no seasonal cron adjustment needed.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether there's anything to promote
+        id: diff
+        run: |
+          git fetch origin release development
+          AHEAD=$(git rev-list --count origin/release..origin/development)
+          echo "Commits on development not yet on release: $AHEAD"
+          echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
+
+      - name: Create or reuse promotion PR
+        if: steps.diff.outputs.ahead != '0'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          EXISTING=$(gh pr list --base release --head development --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "Reusing existing PR #$EXISTING"
+            NUMBER="$EXISTING"
+          else
+            gh pr create --base release --head development \
+              --title "Daily promotion: development to release ($(date -u +%Y-%m-%d))" \
+              --body "Automated daily promotion. Everything currently on \`development\` that isn't yet on \`release\`. Merges automatically once the \`build-and-test\` check passes."
+            NUMBER=$(gh pr list --base release --head development --state open --json number --jq '.[0].number')
+          fi
+          echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Merge (auto-merge if checks are still pending, direct merge if already clean)
+        if: steps.diff.outputs.ahead != '0'
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          # See promote-release-to-master.yml for why this needs a fallback:
+          # the PR's head commit almost always already has a passing check
+          # (from backend-ci.yml's push trigger), which makes
+          # enablePullRequestAutoMerge refuse with a "clean status" error.
+          gh pr merge "${{ steps.pr.outputs.number }}" --merge --auto \
+            || gh pr merge "${{ steps.pr.outputs.number }}" --merge
