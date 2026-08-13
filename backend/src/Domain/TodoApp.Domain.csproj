@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>TodoApp.Domain</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    Intentionally NO <PackageReference> entries here.
+    The Domain project must not depend on EF Core, MediatR, ASP.NET, etc.
+    That's not a style preference — it's the whole point of this layer.
+    See Common/README notes in chat for why.
+  -->
+
+</Project>

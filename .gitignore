@@ -1,0 +1,18 @@
+## .NET
+bin/
+obj/
+*.user
+
+## Angular / Node (for when we get to the frontend)
+node_modules/
+dist/
+.angular/
+
+## IDE
+.vs/
+.vscode/
+*.suo
+
+## OS
+.DS_Store
+Thumbs.db
