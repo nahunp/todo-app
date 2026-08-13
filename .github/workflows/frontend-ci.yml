@@ -1,0 +1,52 @@
+name: Frontend CI
+
+# Path-filtered to frontend/** on purpose — a backend-only change shouldn't
+# trigger an npm install + Angular build, same reasoning as backend-ci.yml
+# staying scoped to the backend/ tree. Mirrors that workflow's trigger
+# shape otherwise: every push (fast feedback), every PR targeting the
+# three protected branches (what branch protection gates on).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    branches: [development, release, master]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
+jobs:
+  build-and-test:
+    name: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      # Angular CLI's default `ng test` runs Karma against a real browser,
+      # which needs --watch=false (otherwise it never exits) and a headless
+      # browser flag. If frontend/ ends up scaffolded with Jest/Vitest
+      # instead, this step's command needs to change to match whatever
+      # `npm test` actually does — check package.json's "test" script once
+      # frontend/ exists rather than trusting this comment.
+      - name: Test
+        working-directory: frontend
+        run: npm test -- --watch=false --browsers=ChromeHeadless

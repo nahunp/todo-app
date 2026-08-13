@@ -14,12 +14,24 @@ All three are the same `Backend CI` workflow (`backend-ci.yml`) — the columns 
 backend/
   TodoApp.sln
   src/
-    Domain/                     # Entities, value objects, domain events — zero external dependencies
+    Domain/           # Entities, value objects, domain events — zero external dependencies
+    Application/       # CQRS commands/queries (MediatR), validation (FluentValidation)
+    Infrastructure/    # EF Core, SQL Server — implements Application's persistence interfaces
+    WebApi/             # Minimal API endpoints, composition root, Swagger
   tests/
-    TodoApp.Domain.UnitTests/   # xUnit tests for the Domain layer
+    TodoApp.Domain.UnitTests/
+    TodoApp.Application.UnitTests/
+
+frontend/             # Angular — Copilot's territory, see .github/copilot-instructions.md
+docs/
+  api/openapi.json     # The API contract shared between backend and frontend
 ```
 
-More layers (Application, Infrastructure, Web API) and the Angular frontend land as we build them.
+Backend is Claude's territory, frontend is Copilot's — same repo, split by
+folder rather than by repo, so branch protection/CI/the promotion pipeline
+below cover both without duplicating any of it. `docs/api/openapi.json` is
+the one thing both sides need to agree on; everything else about each
+side's internals stays that side's own concern.
 
 ## Branching
 
