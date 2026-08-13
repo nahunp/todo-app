@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace TodoApp.Infrastructure.Persistence;
 
@@ -12,25 +13,31 @@ namespace TodoApp.Infrastructure.Persistence;
 /// factory is the bridge until one exists. Only used by the tooling, never
 /// by the running app itself.
 ///
-/// Default (unnamed) local SQL Server instance, Windows-integrated auth,
-/// hardcoded here on purpose — once the Web API project exists, it'll read
-/// the real connection string from configuration at runtime via
-/// DependencyInjection.AddInfrastructureServices, and this factory's job
-/// shrinks to just design-time tooling support.
-///
-/// If SSMS connects with a SQL login (username/password) instead of
-/// Windows Authentication, swap Trusted_Connection=True for
-/// `User Id=...;Password=...;` — don't commit a real password here, this
-/// file is design-time-tooling-only but it's still source control.
+/// The connection string is NOT hardcoded here — it's read from .NET User
+/// Secrets (see TodoApp.Infrastructure.csproj's UserSecretsId), a
+/// secrets.json file that lives outside the repo entirely
+/// (%APPDATA%\Microsoft\UserSecrets\&lt;id&gt;\secrets.json on Windows), set via
+/// Visual Studio: right-click TodoApp.Infrastructure -> Manage User
+/// Secrets. Nothing sensitive ever touches source control this way, even
+/// once real secrets (SQL auth, Azure connection strings) show up later.
 /// </summary>
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
     public ApplicationDbContext CreateDbContext(string[] args)
     {
-        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+        var configuration = new ConfigurationBuilder()
+            .AddUserSecrets<ApplicationDbContextFactory>()
+            .AddEnvironmentVariables()
+            .Build();
 
-        optionsBuilder.UseSqlServer(
-            "Server=localhost;Database=TodoAppDb;Trusted_Connection=True;TrustServerCertificate=True");
+        var connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found. In Visual Studio: " +
+                "right-click TodoApp.Infrastructure -> Manage User Secrets, then add " +
+                "{ \"ConnectionStrings\": { \"DefaultConnection\": \"...\" } }.");
+
+        var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+        optionsBuilder.UseSqlServer(connectionString);
 
         return new ApplicationDbContext(optionsBuilder.Options);
     }
