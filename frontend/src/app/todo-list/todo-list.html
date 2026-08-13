@@ -12,7 +12,7 @@
 
   <ul *ngIf="!loading() && todoLists().length">
     <li *ngFor="let list of todoLists()">
-      {{ list.name || '(untitled)' }} <small *ngIf="list.id">— {{ list.id }}</small>
+      <a [routerLink]="['/lists', list.id]">{{ list.name || '(untitled)' }}</a> <small *ngIf="list.id">— {{ list.id }}</small>
     </li>
   </ul>
 

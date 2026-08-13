@@ -1,0 +1,8 @@
+.detail-page { max-width: 720px; margin: 2rem auto; padding: 1rem; }
+.add-item { display:flex; gap:0.5rem; margin:1rem 0 }
+.add-item input { flex:1 }
+.loading { color:#444 }
+.error { color:#b00020 }
+ul { list-style:none; padding:0 }
+li { padding:0.5rem 0; border-bottom:1px solid #eee }
+.done { text-decoration: line-through; color: #666 }
