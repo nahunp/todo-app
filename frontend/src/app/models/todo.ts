@@ -29,3 +29,11 @@ export interface TodoListWithItemsDto {
   name: string;
   items: TodoItemDto[];
 }
+
+export interface RenameItemCommand {
+  newTitle: string;
+}
+
+export interface RenameListCommand {
+  newName: string;
+}

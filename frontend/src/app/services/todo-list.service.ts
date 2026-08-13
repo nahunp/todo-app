@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto } from '../models/todo';
+import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, RenameItemCommand, RenameListCommand } from '../models/todo';
 
 @Injectable({ providedIn: 'root' })
 export class TodoListService {
@@ -21,7 +21,8 @@ export class TodoListService {
   }
 
   renameItem(listId: number, itemId: number, newTitle: string): Observable<void> {
-    return this.http.put<void>(`${this.base}/${listId}/items/${itemId}`, { todoListId: listId, todoItemId: itemId, newTitle });
+    const body: RenameItemCommand = { newTitle };
+    return this.http.patch<void>(`${this.base}/${listId}/items/${itemId}`, body);
   }
 
   removeItem(listId: number, itemId: number): Observable<void> {
@@ -29,6 +30,7 @@ export class TodoListService {
   }
 
   renameList(listId: number, newName: string): Observable<void> {
-    return this.http.put<void>(`${this.base}/${listId}`, { todoListId: listId, newName });
+    const body: RenameListCommand = { newName };
+    return this.http.patch<void>(`${this.base}/${listId}`, body);
   }
 }
