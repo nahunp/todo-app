@@ -12,10 +12,16 @@ namespace TodoApp.Infrastructure.Persistence;
 /// factory is the bridge until one exists. Only used by the tooling, never
 /// by the running app itself.
 ///
-/// LocalDB, Windows-integrated auth, hardcoded here on purpose — once the
-/// Web API project exists, it'll read the real connection string from
-/// configuration at runtime via DependencyInjection.AddInfrastructureServices,
-/// and this factory's job shrinks to just design-time tooling support.
+/// Default (unnamed) local SQL Server instance, Windows-integrated auth,
+/// hardcoded here on purpose — once the Web API project exists, it'll read
+/// the real connection string from configuration at runtime via
+/// DependencyInjection.AddInfrastructureServices, and this factory's job
+/// shrinks to just design-time tooling support.
+///
+/// If SSMS connects with a SQL login (username/password) instead of
+/// Windows Authentication, swap Trusted_Connection=True for
+/// `User Id=...;Password=...;` — don't commit a real password here, this
+/// file is design-time-tooling-only but it's still source control.
 /// </summary>
 public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
 {
@@ -24,7 +30,7 @@ public class ApplicationDbContextFactory : IDesignTimeDbContextFactory<Applicati
         var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
         optionsBuilder.UseSqlServer(
-            "Server=(localdb)\\MSSQLLocalDB;Database=TodoAppDb;Trusted_Connection=True;TrustServerCertificate=True");
+            "Server=localhost;Database=TodoAppDb;Trusted_Connection=True;TrustServerCertificate=True");
 
         return new ApplicationDbContext(optionsBuilder.Options);
     }
