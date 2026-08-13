@@ -51,3 +51,26 @@ runners, etc.), update this section — it should track `frontend/`'s actual
 
 `frontend-ci.yml` runs on any change under `frontend/**` — build + test,
 mirroring `backend-ci.yml`'s gate on `development`/`release`/`master`.
+
+## Scope
+
+Stay inside `frontend/`. Repo-root tooling — `.github/workflows/`,
+`.githooks/`, build scripts, anything that affects the backend or the repo
+as a whole — is out of scope for a frontend PR. If something like that
+seems genuinely needed, raise it as its own conversation instead of
+bundling it into a feature PR; it needs review from whoever owns that
+territory, not a silent addition.
+
+## Review flow
+
+Claude reviews every PR out of `frontend/` before Diego merges it —
+agreed after the first PR shipped a feature that didn't actually work
+(missing backend endpoint, CORS, a wrong assumption about `fetch()` vs
+`HttpClient`) plus an out-of-scope addition that turned out to be broken
+(a pre-commit hook that flagged any file containing the word "password").
+None of that would've cost more than a few minutes to catch pre-merge.
+
+Flow: Copilot opens a PR → Diego asks Claude to review it → Claude approves
+or flags concrete issues (with evidence — actually running the code, not
+just reading it) → Diego merges. This file should stay accurate enough
+that most issues get caught before the PR even opens, not after.
