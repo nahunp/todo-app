@@ -1,0 +1,33 @@
+name: Sync teflon with development
+
+# teflon is the no-blocker sandbox branch: anyone can PR into it without
+# passing unit tests, to prove something out or reproduce an issue without
+# putting a red check on someone else's real PR. It's still expected to
+# always contain everything that's in development, so we merge development
+# into it automatically on every push, instead of relying on someone to
+# remember to do it by hand.
+on:
+  push:
+    branches: [development]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout teflon
+        uses: actions/checkout@v4
+        with:
+          ref: teflon
+          fetch-depth: 0
+
+      - name: Merge development into teflon
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin development:development
+          git merge development --no-edit -m "chore: sync teflon with development [auto]"
+          git push origin HEAD:teflon

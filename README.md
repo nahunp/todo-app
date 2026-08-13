@@ -25,5 +25,13 @@ More layers (Application, Infrastructure, Web API) and the Angular frontend land
 - `master` — stable baseline, updated at milestones
 - `development` — integration branch for ongoing work
 - `feature/*`, `chore/*` — one per unit of work, PR'd into `development`
+- `teflon` — sandbox branch, no CI gate. For proving something out, reproducing
+  a bug, or testing an idea without putting a red check on someone else's real
+  PR. Auto-synced with `development` on every push (see
+  `sync-teflon.yml`) — always assume it's up to date. To try something, branch
+  off `teflon`, not off `development`; nothing here is expected to land in
+  `development` directly.
 
-Every push and every PR runs the CI workflow (build + full test suite). PRs into `development`/`master` can't be merged unless it's green.
+`master` and `development` are protected: changes must go through a PR, and
+the `build-and-test` check must pass before it can merge. `teflon` has neither
+restriction on purpose.
