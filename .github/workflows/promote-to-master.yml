@@ -59,8 +59,19 @@ jobs:
           fi
           echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
 
-      - name: Enable auto-merge
+      - name: Merge (auto-merge if checks are still pending, direct merge if already clean)
         if: steps.diff.outputs.ahead != '0'
         env:
           GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
-        run: gh pr merge "${{ steps.pr.outputs.number }}" --merge --auto
+        run: |
+          # In practice this PR's head commit almost always already has a
+          # passing build-and-test check by the time we get here — every
+          # commit gets one from backend-ci.yml's `push` trigger before any
+          # promotion PR exists. GitHub's enablePullRequestAutoMerge refuses
+          # to run on a PR that's already immediately mergeable ("clean
+          # status" error) — auto-merge is only for PRs still waiting on
+          # something. So: try auto-merge first for the rare case checks
+          # are genuinely still running, fall back to a direct merge when
+          # it's already clean.
+          gh pr merge "${{ steps.pr.outputs.number }}" --merge --auto \
+            || gh pr merge "${{ steps.pr.outputs.number }}" --merge
