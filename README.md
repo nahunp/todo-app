@@ -22,7 +22,11 @@ More layers (Application, Infrastructure, Web API) and the Angular frontend land
 
 ## Branching
 
-- `master` — stable baseline, updated at milestones
+- `master` — stable baseline. In a real project this would move on a sprint
+  cadence (e.g. every 2 weeks); here it's promoted from `development`
+  automatically every day at 00:00 America/Mexico_City, standing in for a
+  release cutoff while we move faster than a real sprint (see
+  `promote-to-master.yml`)
 - `development` — integration branch for ongoing work
 - `feature/*`, `chore/*` — one per unit of work, PR'd into `development`
 - `teflon` — sandbox branch, no CI gate. For proving something out, reproducing
