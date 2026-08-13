@@ -74,3 +74,10 @@ Flow: Copilot opens a PR → Diego asks Claude to review it → Claude approves
 or flags concrete issues (with evidence — actually running the code, not
 just reading it) → Diego merges. This file should stay accurate enough
 that most issues get caught before the PR even opens, not after.
+
+**Always open a new branch/PR of your own.** Never push commits onto a
+branch or PR you didn't open — even one that looks related, even one still
+open. That's exactly how a real fix (switching to HttpClient, adding
+proxy.conf.json) ended up merged unreviewed: it landed as a second commit
+on someone else's already-in-flight docs PR instead of its own PR, so it
+rode through on that PR's approval instead of getting its own look.
