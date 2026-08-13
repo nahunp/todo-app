@@ -1,0 +1,74 @@
+name: Promote release to master
+
+# Stage 2 of the release pipeline: development -> release -> master.
+# Simulates a real release cutoff — cut from the staging/release branch
+# every 2 days, standing in for a sprint-end release in a real project.
+# See promote-development-to-release.yml for stage 1.
+#
+# Requires a repo secret PROMOTE_TOKEN — a Personal Access Token, NOT the
+# default GITHUB_TOKEN. Reason: GitHub refuses to let a PR/push made with
+# the default GITHUB_TOKEN trigger other workflows (loop prevention). If we
+# used it here, the pull_request-triggered build-and-test check — the one
+# master's branch protection requires before merging — would simply never
+# run on this bot-opened PR, and it would sit stuck forever.
+on:
+  schedule:
+    # 00:00 America/Mexico_City (06:00 UTC — Mexico dropped DST nationwide
+    # in 2022, border-strip municipalities excepted, so this is a fixed
+    # offset year round).
+    #
+    # "*/2" on the day-of-month field means "every 2nd day of the month"
+    # (1st, 3rd, 5th, ...), not a rolling 48h window from whenever this ran
+    # last — cron has no concept of the latter. It'll drift by a day at
+    # some month boundaries (e.g. 31st -> 2nd is a 2-day gap, but some
+    # months make that a 1-day gap instead). Close enough for simulating a
+    # release cadence; revisit if exact spacing ever actually matters.
+    - cron: "0 6 */2 * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check whether there's anything to promote
+        id: diff
+        run: |
+          git fetch origin master release
+          AHEAD=$(git rev-list --count origin/master..origin/release)
+          echo "Commits on release not yet on master: $AHEAD"
+          echo "ahead=$AHEAD" >> "$GITHUB_OUTPUT"
+
+      - name: Create or reuse promotion PR
+        if: steps.diff.outputs.ahead != '0'
+        id: pr
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          EXISTING=$(gh pr list --base master --head release --state open --json number --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            echo "Reusing existing PR #$EXISTING"
+            NUMBER="$EXISTING"
+          else
+            gh pr create --base master --head release \
+              --title "Release: promote release to master ($(date -u +%Y-%m-%d))" \
+              --body "Automated release promotion (every 2 days). Everything currently on \`release\` that isn't yet on \`master\`. Merges automatically once the \`build-and-test\` check passes."
+            NUMBER=$(gh pr list --base master --head release --state open --json number --jq '.[0].number')
+          fi
+          echo "number=$NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Merge (auto-merge if checks are still pending, direct merge if already clean)
+        if: steps.diff.outputs.ahead != '0'
+        env:
+          GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+        run: |
+          gh pr merge "${{ steps.pr.outputs.number }}" --merge --auto \
+            || gh pr merge "${{ steps.pr.outputs.number }}" --merge
