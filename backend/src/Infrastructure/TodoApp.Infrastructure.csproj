@@ -5,6 +5,15 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>TodoApp.Infrastructure</RootNamespace>
+    <!--
+      Ties this project to a secrets.json file that lives OUTSIDE the repo
+      entirely (%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json on
+      Windows) — the connection string (and any future real secret) is set
+      there via Visual Studio's "Manage User Secrets", never hardcoded in
+      source, never committable by accident. This GUID is just a lookup
+      key, not a secret itself — safe to commit.
+    -->
+    <UserSecretsId>97b21163-3f03-480d-81bc-15353c28426e</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -23,10 +32,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <!-- For IConfiguration in DependencyInjection.cs. 8.0.2, not a lower
-         8.0.x — same package-downgrade issue as TodoApp.Application; EF
-         Core's own dependency chain wants >= 8.0.2. -->
+    <!-- 8.0.2, not a lower 8.0.x, everywhere below: same package-downgrade
+         issue as TodoApp.Application — EF Core's own dependency chain
+         wants >= 8.0.2. -->
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.2" />
   </ItemGroup>
 
   <ItemGroup>
