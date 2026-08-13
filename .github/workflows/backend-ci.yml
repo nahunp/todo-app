@@ -1,13 +1,13 @@
 name: Backend CI
 
 # Runs on every push (any branch — fast feedback while you're still working)
-# and on every PR targeting development or master (this is what branch
-# protection gates on before allowing a merge).
+# and on every PR targeting development, release, or master (this is what
+# branch protection gates on before allowing a merge).
 on:
   push:
     branches: ["**"]
   pull_request:
-    branches: [development, master]
+    branches: [development, release, master]
 
 jobs:
   build-and-test:
