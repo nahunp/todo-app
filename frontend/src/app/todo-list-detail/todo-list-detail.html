@@ -1,0 +1,25 @@
+<div class="detail-page">
+  <button (click)="goBack()">← Back</button>
+
+  <div *ngIf="loading()" class="loading">Loading…</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div *ngIf="!loading() && list()">
+    <h1>{{ list()!.name }}</h1>
+    <button (click)="renameList()">Rename list</button>
+
+    <div class="add-item">
+      <input placeholder="New item title" [(ngModel)]="newTitle" />
+      <button (click)="addItem()">Add</button>
+    </div>
+
+    <ul>
+      <li *ngFor="let item of list()!.items">
+        <span [class.done]="item.isDone">{{ item.title }}</span>
+        <small *ngIf="item.notes"> — {{ item.notes }}</small>
+        <button (click)="renameItem(item)">Rename</button>
+        <button (click)="removeItem(item)">Remove</button>
+      </li>
+    </ul>
+  </div>
+</div>
