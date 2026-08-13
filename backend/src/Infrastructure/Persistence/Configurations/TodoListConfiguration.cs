@@ -25,8 +25,13 @@ public class TodoListConfiguration : IEntityTypeConfiguration<TodoList>
         // Same configuration as ApplicationDbContextFake in
         // TodoApp.Application.UnitTests — duplicated there deliberately so
         // the test project doesn't have to depend on Infrastructure.
+        // IsRequired(): a TodoItem only ever comes into existence via
+        // TodoList.AddItem, so the shadow TodoListId FK should be NOT
+        // NULL, not the EF default (nullable/optional) for a WithOne()
+        // with no reciprocal navigation.
         builder.HasMany(l => l.Items)
             .WithOne()
+            .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.Navigation(l => l.Items)
