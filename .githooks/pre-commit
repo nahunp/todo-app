@@ -1,0 +1,10 @@
+#!/bin/sh
+# Cross-platform pre-commit hook: run Node secret scanner
+# Try node from PATH first, fallback to common Windows path
+TOP=$(git rev-parse --show-toplevel 2>/dev/null || echo "$(pwd)")
+if command -v node >/dev/null 2>&1; then
+  node "$TOP/scripts/check-secrets.js" || exit 1
+else
+  "C:/Program Files/nodejs/node.exe" "$TOP/scripts/check-secrets.js" || exit 1
+fi
+exit 0
