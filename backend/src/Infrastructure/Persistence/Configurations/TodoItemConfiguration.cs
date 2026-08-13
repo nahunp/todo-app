@@ -8,6 +8,13 @@ public class TodoItemConfiguration : IEntityTypeConfiguration<TodoItem>
 {
     public void Configure(EntityTypeBuilder<TodoItem> builder)
     {
+        // TodoItem has no DbSet of its own (only reachable via
+        // TodoList.Items), so EF Core's table-naming convention falls back
+        // to the CLR type name — "TodoItem", singular — instead of
+        // matching "TodoLists" (from the DbSet property name). Explicit,
+        // for consistency.
+        builder.ToTable("TodoItems");
+
         // Matches TodoItem's own TitleMaxLength constant.
         builder.Property(i => i.Title)
             .HasMaxLength(200)
