@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using TodoApp.Domain.Exceptions;
 using ApplicationValidationException = TodoApp.Application.Common.Exceptions.ValidationException;
+using NotFoundException = TodoApp.Application.Common.Exceptions.NotFoundException;
 
 namespace TodoApp.WebApi.Common;
 
@@ -35,6 +36,15 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Title = "A business rule was violated.",
                 Detail = domainException.Message,
                 Status = StatusCodes.Status400BadRequest,
+            },
+
+            // The request was well-formed and valid, but what it points at
+            // (a TodoListId/TodoItemId) doesn't exist.
+            NotFoundException notFoundException => new ProblemDetails
+            {
+                Title = "The requested resource was not found.",
+                Detail = notFoundException.Message,
+                Status = StatusCodes.Status404NotFound,
             },
 
             // Anything else is a bug or an infrastructure failure, not
