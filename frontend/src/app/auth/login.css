@@ -30,3 +30,9 @@
   border: 2px solid var(--tf-success);
 }
 
+.password-reuse-warning {
+  display: block;
+  margin-bottom: 24px;
+  font-weight: 400;
+}
+

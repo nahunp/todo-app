@@ -1,0 +1,25 @@
+.legal-page {
+  max-width: 640px;
+  margin: 32px auto;
+  padding: 32px;
+  background-color: var(--color-surface);
+  border: 2px solid #ccc;
+}
+
+.legal-page h1 {
+  margin: 16px 0 24px;
+}
+
+.legal-page p {
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.legal-page .tag {
+  display: block;
+  padding: 12px;
+}
+
+.legal-page a {
+  color: var(--color-accent);
+}
