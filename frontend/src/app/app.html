@@ -3,13 +3,13 @@
     <h4>Todo</h4>
   </div>
   <div class="navbar-links">
-    <a routerLink="/lists" class="nav-link">Lists</a>
     <ng-container *ngIf="!auth.isAuthenticated()">
       <a routerLink="/login" class="nav-link">Login</a>
       <a routerLink="/register" class="nav-link">Register</a>
     </ng-container>
     <ng-container *ngIf="auth.isAuthenticated()">
-      <a (click)="auth.logout()" class="nav-link" style="cursor:pointer">Logout</a>
+      <a routerLink="/lists" class="nav-link">Lists</a>
+      <a (click)="logout()" class="nav-link" style="cursor:pointer">Logout</a>
     </ng-container>
   </div>
 </nav>
