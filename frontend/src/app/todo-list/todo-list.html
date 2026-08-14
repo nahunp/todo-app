@@ -1,0 +1,30 @@
+<div class="todo-page">
+  <h1>Todo Lists</h1>
+
+  <div class="controls">
+    <input #nameInput placeholder="New list name" />
+    <button (click)="create(nameInput.value); nameInput.value = ''">Create</button>
+    <button (click)="load()">Refresh</button>
+  </div>
+
+  <div *ngIf="loading() && !error()" class="loading">Loading…</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <ul *ngIf="!loading() && todoLists().length">
+    <li *ngFor="let list of todoLists()">
+      <a [routerLink]="['/lists', list.id]">{{ list.name || '(untitled)' }}</a> <small *ngIf="list.id">— {{ list.id }}</small>
+
+      <ng-container *ngIf="pendingDeleteListId() !== list.id; else confirmDeleteTpl">
+        <button (click)="startDeleteList(list.id)">Delete</button>
+      </ng-container>
+
+      <ng-template #confirmDeleteTpl>
+        <span>Confirm delete?</span>
+        <button (click)="confirmDeleteList(list.id)">Yes</button>
+        <button (click)="cancelDeleteList()">No</button>
+      </ng-template>
+    </li>
+  </ul>
+
+  <div *ngIf="!loading() && !todoLists().length && !error()">No todo lists yet.</div>
+</div>

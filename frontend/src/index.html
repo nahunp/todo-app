@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Frontend</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!--
+    Plain script, not a JS module — loads and runs before Angular's own
+    bundle, setting a true window global. See runtime-config.ts for why:
+    a shared mutable object exported from a JS module doesn't reliably
+    stay a *single* shared instance across Angular's lazily-loaded route
+    chunks with this build (confirmed live — a fetch-and-mutate version of
+    this worked for the eagerly-bundled AuthService but not the lazy
+    TodoListService, which had its own separate, never-updated copy of
+    the same "shared" object). window is a true runtime global, not
+    module-scoped, so every chunk reads the exact same value.
+  -->
+  <script src="config.js"></script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

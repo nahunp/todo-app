@@ -1,0 +1,13 @@
+<div class="auth-form">
+  <h2>Register</h2>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+  <div>
+    <label>Email <input [ngModel]="email()" (ngModelChange)="email.set($event)" /></label>
+  </div>
+  <div>
+    <label>Password <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" /></label>
+  </div>
+  <div>
+    <button (click)="submit()" [disabled]="loading()">Register</button>
+  </div>
+</div>

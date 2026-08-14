@@ -1,0 +1,9 @@
+﻿Fix: import RouterLink in TodoList component; use PATCH for renameItem/renameList and add typed TodoListService/models
+
+- Add frontend/src/app/models/todo.ts (typed DTOs)
+- Add frontend/src/app/services/todo-list.service.ts (HttpClient-based service using PATCH for rename ops)
+- Update TodoList component to import RouterLink
+
+Requesting backend to be running at http://localhost:5080 for local verification.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

@@ -1,0 +1,51 @@
+<div class="detail-page">
+  <button (click)="goBack()">← Back</button>
+
+  <div *ngIf="loading()" class="loading">Loading…</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+
+  <div *ngIf="!loading() && list()">
+    <ng-container *ngIf="!editingList(); else editListTpl">
+      <h1>{{ list()!.name }}</h1>
+      <button (click)="startRenameList()">Rename list</button>
+    </ng-container>
+    <ng-template #editListTpl>
+      <div class="edit-list">
+        <input [ngModel]="editingListName()" (ngModelChange)="editingListName.set($event)" />
+        <button (click)="saveRenameList()">Save</button>
+        <button (click)="cancelRenameList()">Cancel</button>
+      </div>
+    </ng-template>
+
+    <div class="add-item">
+      <input placeholder="New item title" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" />
+      <button (click)="addItem()">Add</button>
+    </div>
+
+    <ul>
+      <li *ngFor="let item of list()!.items">
+        <ng-container *ngIf="editingItemId() !== item.id; else editItemTpl">
+          <input type="checkbox" [checked]="item.isDone" (change)="toggleComplete(item)" />
+          <span [class.done]="item.isDone">{{ item.title }}</span>
+          <small *ngIf="item.notes"> — {{ item.notes }}</small>
+          <button (click)="startRenameItem(item)">Rename</button>
+          <ng-container *ngIf="pendingDeleteItemId() !== item.id; else confirmRemoveTpl">
+            <button (click)="startRemoveItem(item)">Remove</button>
+          </ng-container>
+        </ng-container>
+
+        <ng-template #editItemTpl>
+          <input [ngModel]="editingItemTitle()" (ngModelChange)="editingItemTitle.set($event)" />
+          <button (click)="saveRenameItem()">Save</button>
+          <button (click)="cancelRenameItem()">Cancel</button>
+        </ng-template>
+
+        <ng-template #confirmRemoveTpl>
+          <span>Confirm remove?</span>
+          <button (click)="confirmRemoveItem()">Yes</button>
+          <button (click)="cancelRemoveItem()">No</button>
+        </ng-template>
+      </li>
+    </ul>
+  </div>
+</div>
