@@ -29,6 +29,14 @@ export class TodoListService {
     return this.http.delete<void>(`${this.base}/${listId}/items/${itemId}`);
   }
 
+  completeItem(listId: number, itemId: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/${listId}/items/${itemId}/complete`, null);
+  }
+
+  reopenItem(listId: number, itemId: number): Observable<void> {
+    return this.http.post<void>(`${this.base}/${listId}/items/${itemId}/reopen`, null);
+  }
+
   renameList(listId: number, newName: string): Observable<void> {
     const body: RenameListCommand = { newName };
     return this.http.patch<void>(`${this.base}/${listId}`, body);
