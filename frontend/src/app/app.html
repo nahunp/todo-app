@@ -1,11 +1,20 @@
-<nav>
-  <a routerLink="/lists">Lists</a> |
-  <ng-container *ngIf="!auth.isAuthenticated()">
-    <a routerLink="/login">Login</a> |
-    <a routerLink="/register">Register</a>
-  </ng-container>
-  <ng-container *ngIf="auth.isAuthenticated()">
-    <a (click)="auth.logout()" style="cursor:pointer">Logout</a>
-  </ng-container>
+<nav class="navbar">
+  <div class="navbar-brand">
+    <h4>Todo</h4>
+  </div>
+  <div class="navbar-links">
+    <ng-container *ngIf="!auth.isAuthenticated()">
+      <a routerLink="/login" class="nav-link">Login</a>
+      <a routerLink="/register" class="nav-link">Register</a>
+    </ng-container>
+    <ng-container *ngIf="auth.isAuthenticated()">
+      <a routerLink="/lists" class="nav-link">Lists</a>
+      <a (click)="logout()" class="nav-link" style="cursor:pointer">Logout</a>
+    </ng-container>
+  </div>
 </nav>
 <router-outlet />
+<footer class="app-footer">
+  <a routerLink="/terms" class="nav-link">Terms of Service</a>
+  <a routerLink="/privacy" class="nav-link">Privacy Policy</a>
+</footer>

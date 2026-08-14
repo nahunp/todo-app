@@ -7,12 +7,17 @@ export interface TodoListDto {
   name?: string | null;
 }
 
+export type PriorityLevel = 'Low' | 'Medium' | 'High';
+export type TodoItemCategory = 'None' | 'Work' | 'Personal' | 'Health';
+export type DueDateState = 'None' | 'Overdue' | 'Today' | 'Upcoming';
+
 export interface AddTodoItemCommand {
   todoListId: number;
   title: string;
   notes?: string | null;
-  priority?: number;
+  priority?: PriorityLevel;
   dueDate?: string | null; // ISO string
+  category?: TodoItemCategory;
 }
 
 export interface TodoItemDto {
@@ -20,8 +25,11 @@ export interface TodoItemDto {
   title: string;
   notes?: string | null;
   isDone: boolean;
-  priority: number;
+  completedAt?: string | null;
+  priority: PriorityLevel;
   dueDate?: string | null;
+  category: TodoItemCategory;
+  dueDateState: DueDateState;
 }
 
 export interface TodoListWithItemsDto {
@@ -36,4 +44,16 @@ export interface RenameItemCommand {
 
 export interface RenameListCommand {
   newName: string;
+}
+
+export interface SetPriorityRequest {
+  priority: PriorityLevel;
+}
+
+export interface SetDueDateRequest {
+  dueDate: string | null;
+}
+
+export interface SetCategoryRequest {
+  category: TodoItemCategory;
 }

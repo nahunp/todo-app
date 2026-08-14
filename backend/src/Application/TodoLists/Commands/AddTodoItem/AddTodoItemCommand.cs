@@ -13,7 +13,8 @@ public record AddTodoItemCommand(
     string Title,
     string? Notes = null,
     PriorityLevel Priority = PriorityLevel.Medium,
-    DateTimeOffset? DueDate = null) : IRequest<int>;
+    DateTimeOffset? DueDate = null,
+    TodoItemCategory Category = TodoItemCategory.None) : IRequest<int>;
 
 public class AddTodoItemCommandHandler : IRequestHandler<AddTodoItemCommand, int>
 {
@@ -43,7 +44,7 @@ public class AddTodoItemCommandHandler : IRequestHandler<AddTodoItemCommand, int
         // AddItem enforces the list's own invariant (no duplicate titles)
         // and TodoItem's (title non-empty/length) — both DomainExceptions,
         // both already mapped to 400 by GlobalExceptionHandler.
-        var item = list.AddItem(request.Title, request.Notes, request.Priority, request.DueDate);
+        var item = list.AddItem(request.Title, request.Notes, request.Priority, request.DueDate, request.Category);
 
         await _context.SaveChangesAsync(cancellationToken);
 

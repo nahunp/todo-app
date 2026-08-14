@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TodoListService } from '../services/todo-list.service';
-import { TodoListWithItemsDto, TodoItemDto } from '../models/todo';
+import { TodoListWithItemsDto, TodoItemDto, PriorityLevel, TodoItemCategory, DueDateState } from '../models/todo';
 import { catchError, of } from 'rxjs';
 
 @Component({
@@ -31,6 +31,11 @@ export class TodoListDetail implements OnInit {
 
   editingList = signal(false);
   editingListName = signal('');
+
+  // Priority/due-date/category editing state
+  editingPriorityItemId = signal<number | null>(null);
+  editingDueDateItemId = signal<number | null>(null);
+  editingCategoryItemId = signal<number | null>(null);
 
   ngOnInit(): void {
     const idStr = this.route.snapshot.paramMap.get('id');
@@ -116,6 +121,101 @@ export class TodoListDetail implements OnInit {
     } else {
       this.service.completeItem(listId, item.id).subscribe(() => this.load(listId), err => this.error.set(err?.message ?? String(err)));
     }
+  }
+
+  // Priority/due-date/category setters
+  setPriority(itemId: number, priority: PriorityLevel) {
+    const listId = this.list()!.id;
+    this.service.setPriority(listId, itemId, priority).subscribe(() => {
+      this.editingPriorityItemId.set(null);
+      this.load(listId);
+    }, err => this.error.set(err?.message ?? String(err)));
+  }
+
+  setDueDate(itemId: number, dateString: string | null) {
+    const listId = this.list()!.id;
+    this.service.setDueDate(listId, itemId, dateString).subscribe(() => {
+      this.editingDueDateItemId.set(null);
+      this.load(listId);
+    }, err => this.error.set(err?.message ?? String(err)));
+  }
+
+  setCategory(itemId: number, category: TodoItemCategory) {
+    const listId = this.list()!.id;
+    this.service.setCategory(listId, itemId, category).subscribe(() => {
+      this.editingCategoryItemId.set(null);
+      this.load(listId);
+    }, err => this.error.set(err?.message ?? String(err)));
+  }
+
+  // Helper methods for tag styling
+  getPriorityTagClass(priority: PriorityLevel): string {
+    switch (priority) {
+      case 'High':
+        return 'priority-high';
+      case 'Medium':
+        return 'priority-medium';
+      case 'Low':
+        return 'priority-low';
+      default:
+        return 'priority-low';
+    }
+  }
+
+  getDueDateTagClass(dueDateState: DueDateState): string {
+    switch (dueDateState) {
+      case 'Overdue':
+        return 'tag-accent-2';
+      case 'Today':
+        return 'tag-warning';
+      case 'Upcoming':
+        return 'tag-citron';
+      default:
+        return '';
+    }
+  }
+
+  getDueDateTagLabel(dueDateState: DueDateState): string {
+    switch (dueDateState) {
+      case 'Overdue':
+        return 'Overdue';
+      case 'Today':
+        return 'Today';
+      case 'Upcoming':
+        return 'Upcoming';
+      default:
+        return '';
+    }
+  }
+
+  getCategoryTagClass(category: TodoItemCategory): string {
+    switch (category) {
+      case 'Work':
+        return 'tag-info';
+      case 'Personal':
+        return 'tag-purple';
+      case 'Health':
+        return 'tag-teal';
+      default:
+        return '';
+    }
+  }
+
+  // Event handlers for select/input changes
+  onPriorityChange(itemId: number, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.setPriority(itemId, select.value as PriorityLevel);
+  }
+
+  onDueDateChange(itemId: number, event: Event) {
+    const input = event.target as HTMLInputElement;
+    const value = input.value ? input.value + 'T00:00:00Z' : null;
+    this.setDueDate(itemId, value);
+  }
+
+  onCategoryChange(itemId: number, event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.setCategory(itemId, select.value as TodoItemCategory);
   }
 
   // Inline rename for list

@@ -47,6 +47,30 @@ public class AddTodoItemCommandHandlerTests
     }
 
     [Fact]
+    public async Task Handle_WithCategory_SetsIt()
+    {
+        var (context, currentUser, listId) = await CreateListAsync();
+        var handler = new AddTodoItemCommandHandler(context, currentUser);
+
+        await handler.Handle(new AddTodoItemCommand(listId, "Buy milk", Category: TodoItemCategory.Personal), CancellationToken.None);
+
+        var item = context.TodoLists.Single(l => l.Id == listId).Items.Single();
+        Assert.Equal(TodoItemCategory.Personal, item.Category);
+    }
+
+    [Fact]
+    public async Task Handle_WithoutCategory_DefaultsToNone()
+    {
+        var (context, currentUser, listId) = await CreateListAsync();
+        var handler = new AddTodoItemCommandHandler(context, currentUser);
+
+        await handler.Handle(new AddTodoItemCommand(listId, "Buy milk"), CancellationToken.None);
+
+        var item = context.TodoLists.Single(l => l.Id == listId).Items.Single();
+        Assert.Equal(TodoItemCategory.None, item.Category);
+    }
+
+    [Fact]
     public async Task Handle_WithUnknownListId_ThrowsNotFoundException()
     {
         var context = ApplicationDbContextFake.Create();

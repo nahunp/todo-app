@@ -6,4 +6,9 @@
 // setting a window global, not a JSON asset fetched into a JS module.
 window.__appConfig = {
   apiBaseUrl: "",
+  // Cloudflare's published always-passes test site key, paired with the
+  // backend's own committed test secret — see CLAUDE.md's Auth section.
+  // Deployments overwrite this with the real production site key, same as
+  // apiBaseUrl above.
+  turnstileSiteKey: "1x00000000000000000000AA",
 };

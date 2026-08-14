@@ -95,10 +95,11 @@ public class TodoListTests
     {
         var list = new TodoList(OwnerId, "Groceries");
 
-        var item = list.AddItem("Buy milk", priority: PriorityLevel.High);
+        var item = list.AddItem("Buy milk", priority: PriorityLevel.High, category: TodoItemCategory.Personal);
 
         Assert.Equal("Buy milk", item.Title);
         Assert.Equal(PriorityLevel.High, item.Priority);
+        Assert.Equal(TodoItemCategory.Personal, item.Category);
     }
 
     [Fact]

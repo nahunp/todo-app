@@ -1,51 +1,112 @@
 <div class="detail-page">
-  <button (click)="goBack()">← Back</button>
+  <button class="btn btn-link" (click)="goBack()">← Back</button>
 
   <div *ngIf="loading()" class="loading">Loading…</div>
   <div *ngIf="error()" class="error">{{ error() }}</div>
 
-  <div *ngIf="!loading() && list()">
-    <ng-container *ngIf="!editingList(); else editListTpl">
-      <h1>{{ list()!.name }}</h1>
-      <button (click)="startRenameList()">Rename list</button>
-    </ng-container>
-    <ng-template #editListTpl>
-      <div class="edit-list">
-        <input [ngModel]="editingListName()" (ngModelChange)="editingListName.set($event)" />
-        <button (click)="saveRenameList()">Save</button>
-        <button (click)="cancelRenameList()">Cancel</button>
-      </div>
-    </ng-template>
-
-    <div class="add-item">
-      <input placeholder="New item title" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" />
-      <button (click)="addItem()">Add</button>
+  <div *ngIf="!loading() && list()" class="list-detail">
+    <div class="list-header">
+      <ng-container *ngIf="!editingList(); else editListTpl">
+        <h1>{{ list()!.name }}</h1>
+        <button class="btn btn-secondary" (click)="startRenameList()">Rename list</button>
+      </ng-container>
+      <ng-template #editListTpl>
+        <div class="edit-list">
+          <input class="edit-input" [ngModel]="editingListName()" (ngModelChange)="editingListName.set($event)" />
+          <button class="btn btn-primary" (click)="saveRenameList()">Save</button>
+          <button class="btn btn-secondary" (click)="cancelRenameList()">Cancel</button>
+        </div>
+      </ng-template>
     </div>
 
-    <ul>
-      <li *ngFor="let item of list()!.items">
+    <div class="add-item-section">
+      <div class="form-group">
+        <label for="new-item">Add item</label>
+        <div class="input-group">
+          <input id="new-item" placeholder="New item title" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" />
+          <button class="btn btn-primary" (click)="addItem()">Add</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="items-list">
+      <div *ngFor="let item of list()!.items" class="item-card">
         <ng-container *ngIf="editingItemId() !== item.id; else editItemTpl">
-          <input type="checkbox" [checked]="item.isDone" (change)="toggleComplete(item)" />
-          <span [class.done]="item.isDone">{{ item.title }}</span>
-          <small *ngIf="item.notes"> — {{ item.notes }}</small>
-          <button (click)="startRenameItem(item)">Rename</button>
-          <ng-container *ngIf="pendingDeleteItemId() !== item.id; else confirmRemoveTpl">
-            <button (click)="startRemoveItem(item)">Remove</button>
-          </ng-container>
+          <div class="item-header">
+            <div class="checkbox-wrapper">
+              <input type="checkbox" [id]="'item-' + item.id" [checked]="item.isDone" (change)="toggleComplete(item)" />
+              <label [for]="'item-' + item.id" [ngClass]="{'checkbox-label': true, 'completed': item.isDone}">
+                {{ item.title }}
+              </label>
+            </div>
+          </div>
+
+          <div class="item-metadata" *ngIf="item.notes">
+            <small>{{ item.notes }}</small>
+          </div>
+
+          <div class="item-tags">
+            <span class="tag priority-tag" [ngClass]="getPriorityTagClass(item.priority)">
+              {{ item.priority }}
+            </span>
+            <span *ngIf="item.dueDateState !== 'None'" class="tag" [ngClass]="getDueDateTagClass(item.dueDateState)">
+              {{ getDueDateTagLabel(item.dueDateState) }}
+            </span>
+            <span *ngIf="item.category !== 'None'" class="tag" [ngClass]="getCategoryTagClass(item.category)">
+              {{ item.category }}
+            </span>
+          </div>
+
+          <div class="item-actions">
+            <div class="action-row">
+              <label [for]="'priority-select-' + item.id">Priority:</label>
+              <select class="item-select" [id]="'priority-select-' + item.id" (change)="onPriorityChange(item.id, $event)" [value]="item.priority">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+            </div>
+
+            <div class="action-row">
+              <label [for]="'duedate-input-' + item.id">Due date:</label>
+              <input type="date" class="item-input" [id]="'duedate-input-' + item.id" [value]="item.dueDate ? (item.dueDate | date:'yyyy-MM-dd') : ''" (change)="onDueDateChange(item.id, $event)" />
+            </div>
+
+            <div class="action-row">
+              <label [for]="'category-select-' + item.id">Category:</label>
+              <select class="item-select" [id]="'category-select-' + item.id" (change)="onCategoryChange(item.id, $event)" [value]="item.category">
+                <option value="None">None</option>
+                <option value="Work">Work</option>
+                <option value="Personal">Personal</option>
+                <option value="Health">Health</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="item-buttons">
+            <button class="btn btn-secondary" (click)="startRenameItem(item)">Rename</button>
+            <ng-container *ngIf="pendingDeleteItemId() !== item.id; else confirmRemoveTpl">
+              <button class="btn btn-destructive" (click)="startRemoveItem(item)">Remove</button>
+            </ng-container>
+          </div>
         </ng-container>
 
         <ng-template #editItemTpl>
-          <input [ngModel]="editingItemTitle()" (ngModelChange)="editingItemTitle.set($event)" />
-          <button (click)="saveRenameItem()">Save</button>
-          <button (click)="cancelRenameItem()">Cancel</button>
+          <div class="edit-item">
+            <input class="edit-input" [ngModel]="editingItemTitle()" (ngModelChange)="editingItemTitle.set($event)" />
+            <button class="btn btn-primary" (click)="saveRenameItem()">Save</button>
+            <button class="btn btn-secondary" (click)="cancelRenameItem()">Cancel</button>
+          </div>
         </ng-template>
 
         <ng-template #confirmRemoveTpl>
-          <span>Confirm remove?</span>
-          <button (click)="confirmRemoveItem()">Yes</button>
-          <button (click)="cancelRemoveItem()">No</button>
+          <div class="confirm-remove">
+            <span class="confirm-text">Confirm remove?</span>
+            <button class="btn btn-destructive" (click)="confirmRemoveItem()">Yes</button>
+            <button class="btn btn-secondary" (click)="cancelRemoveItem()">No</button>
+          </div>
         </ng-template>
-      </li>
-    </ul>
+      </div>
+    </div>
   </div>
 </div>
