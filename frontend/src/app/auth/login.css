@@ -1,0 +1,4 @@
+.auth-form { max-width: 360px; margin: 16px; }
+.auth-form label { display:block; margin-bottom:8px }
+.error { color: #b00020; margin-bottom:8px }
+.success { color: #1b5e20; margin-bottom:8px }

@@ -1,0 +1,14 @@
+<div class="auth-form">
+  <h2>Login</h2>
+  <div *ngIf="justRegistered()" class="success">Registered — please log in.</div>
+  <div *ngIf="error()" class="error">{{ error() }}</div>
+  <div>
+    <label>Email <input [ngModel]="email()" (ngModelChange)="email.set($event)" /></label>
+  </div>
+  <div>
+    <label>Password <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" /></label>
+  </div>
+  <div>
+    <button (click)="submit()" [disabled]="loading()">Login</button>
+  </div>
+</div>

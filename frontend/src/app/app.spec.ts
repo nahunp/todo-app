@@ -1,10 +1,15 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
+      // App's nav now uses RouterLink (issue #44), which eagerly injects
+      // ActivatedRoute — needs a router context even for a "does it
+      // construct" test, not just routed-content tests.
+      providers: [provideRouter([])],
     }).compileComponents();
   });
 
