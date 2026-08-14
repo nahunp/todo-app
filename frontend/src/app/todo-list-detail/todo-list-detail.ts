@@ -24,6 +24,14 @@ export class TodoListDetail implements OnInit {
 
   newTitle = signal('');
 
+  // Inline edit / confirm UI state
+  editingItemId = signal<number | null>(null);
+  editingItemTitle = signal('');
+  pendingDeleteItemId = signal<number | null>(null);
+
+  editingList = signal(false);
+  editingListName = signal('');
+
   ngOnInit(): void {
     const idStr = this.route.snapshot.paramMap.get('id');
     const id = idStr ? Number(idStr) : NaN;
@@ -57,24 +65,79 @@ export class TodoListDetail implements OnInit {
     }, err => this.error.set(err?.message ?? String(err)));
   }
 
-  renameItem(item: TodoItemDto) {
-    const newTitle = prompt('New title', item.title);
-    if (!newTitle || newTitle === item.title) return;
-    const listId = this.list()!.id;
-    this.service.renameItem(listId, item.id, newTitle).subscribe(() => this.load(listId), err => this.error.set(err?.message ?? String(err)));
+  // Inline rename flows for items
+  startRenameItem(item: TodoItemDto) {
+    this.editingItemId.set(item.id);
+    this.editingItemTitle.set(item.title ?? '');
   }
 
-  removeItem(item: TodoItemDto) {
-    if (!confirm(`Remove item '${item.title}'?`)) return;
+  saveRenameItem() {
+    const itemId = this.editingItemId();
+    if (itemId == null) return;
+    const newTitle = this.editingItemTitle();
+    if (!newTitle) return;
     const listId = this.list()!.id;
-    this.service.removeItem(listId, item.id).subscribe(() => this.load(listId), err => this.error.set(err?.message ?? String(err)));
+    this.service.renameItem(listId, itemId, newTitle).subscribe(() => {
+      this.editingItemId.set(null);
+      this.editingItemTitle.set('');
+      this.load(listId);
+    }, err => this.error.set(err?.message ?? String(err)));
   }
 
-  renameList() {
-    const newName = prompt('New list name', this.list()!.name);
-    if (!newName || newName === this.list()!.name) return;
+  cancelRenameItem() {
+    this.editingItemId.set(null);
+    this.editingItemTitle.set('');
+  }
+
+  // In-page remove confirmation
+  startRemoveItem(item: TodoItemDto) {
+    this.pendingDeleteItemId.set(item.id);
+  }
+
+  confirmRemoveItem() {
+    const itemId = this.pendingDeleteItemId();
+    if (itemId == null) return;
     const listId = this.list()!.id;
-    this.service.renameList(listId, newName).subscribe(() => this.load(listId), err => this.error.set(err?.message ?? String(err)));
+    this.service.removeItem(listId, itemId).subscribe(() => {
+      this.pendingDeleteItemId.set(null);
+      this.load(listId);
+    }, err => this.error.set(err?.message ?? String(err)));
+  }
+
+  cancelRemoveItem() {
+    this.pendingDeleteItemId.set(null);
+  }
+
+  // Complete / Reopen using POST endpoints
+  toggleComplete(item: TodoItemDto) {
+    const listId = this.list()!.id;
+    if (item.isDone) {
+      this.service.reopenItem(listId, item.id).subscribe(() => this.load(listId), err => this.error.set(err?.message ?? String(err)));
+    } else {
+      this.service.completeItem(listId, item.id).subscribe(() => this.load(listId), err => this.error.set(err?.message ?? String(err)));
+    }
+  }
+
+  // Inline rename for list
+  startRenameList() {
+    this.editingListName.set(this.list()!.name ?? '');
+    this.editingList.set(true);
+  }
+
+  saveRenameList() {
+    const newName = this.editingListName();
+    if (!newName) return;
+    const listId = this.list()!.id;
+    this.service.renameList(listId, newName).subscribe(() => {
+      this.editingList.set(false);
+      this.editingListName.set('');
+      this.load(listId);
+    }, err => this.error.set(err?.message ?? String(err)));
+  }
+
+  cancelRenameList() {
+    this.editingList.set(false);
+    this.editingListName.set('');
   }
 
   goBack() {
