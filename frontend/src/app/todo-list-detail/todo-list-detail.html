@@ -9,7 +9,7 @@
     <button (click)="renameList()">Rename list</button>
 
     <div class="add-item">
-      <input placeholder="New item title" [(ngModel)]="newTitle" />
+      <input placeholder="New item title" [ngModel]="newTitle()" (ngModelChange)="newTitle.set($event)" />
       <button (click)="addItem()">Add</button>
     </div>
 

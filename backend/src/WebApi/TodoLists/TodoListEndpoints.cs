@@ -1,9 +1,11 @@
 using MediatR;
 using TodoApp.Application.TodoLists.Commands.AddTodoItem;
+using TodoApp.Application.TodoLists.Commands.CompleteTodoItem;
 using TodoApp.Application.TodoLists.Commands.CreateTodoList;
 using TodoApp.Application.TodoLists.Commands.RemoveTodoItem;
 using TodoApp.Application.TodoLists.Commands.RenameTodoItem;
 using TodoApp.Application.TodoLists.Commands.RenameTodoList;
+using TodoApp.Application.TodoLists.Commands.ReopenTodoItem;
 using TodoApp.Application.TodoLists.Queries.GetTodoList;
 using TodoApp.Application.TodoLists.Queries.GetTodoLists;
 using TodoApp.Domain.Enums;
@@ -94,6 +96,30 @@ public static class TodoListEndpoints
         })
         .WithName("RemoveTodoItem")
         .WithSummary("Removes an item from a todo list.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
+
+        // POST, not PATCH — this isn't "update the IsDone field," it's an
+        // action/transition (see TodoItem.MarkComplete/Reopen: both raise a
+        // domain event and enforce IsDone/CompletedAt move together). No
+        // request body needed, everything comes from the route.
+        group.MapPost("/{id:int}/items/{itemId:int}/complete", async (int id, int itemId, ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new CompleteTodoItemCommand(id, itemId), cancellationToken);
+            return Results.NoContent();
+        })
+        .WithName("CompleteTodoItem")
+        .WithSummary("Marks an item as done.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPost("/{id:int}/items/{itemId:int}/reopen", async (int id, int itemId, ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new ReopenTodoItemCommand(id, itemId), cancellationToken);
+            return Results.NoContent();
+        })
+        .WithName("ReopenTodoItem")
+        .WithSummary("Reopens a completed item.")
         .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound);
     }
