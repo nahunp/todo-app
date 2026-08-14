@@ -1,6 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 export interface AuthResponse {
   accessToken?: string;
@@ -11,17 +12,18 @@ export interface AuthResponse {
 export class AuthService {
   private readonly storageKey = 'todoapp_token';
   private http = inject(HttpClient);
+  private base = `${environment.apiBaseUrl}/api/v1/auth`;
 
   // Simple reactive state for whether a token exists
   isAuthenticated = signal<boolean>(!!this.getToken());
 
   // Register: backend returns 201 empty body — don't expect a token here
   register(email: string, password: string) {
-    return this.http.post<void>('/api/v1/auth/register', { email, password });
+    return this.http.post<void>(`${this.base}/register`, { email, password });
   }
 
   login(email: string, password: string) {
-    return this.http.post<AuthResponse>('/api/v1/auth/login', { email, password }).pipe(
+    return this.http.post<AuthResponse>(`${this.base}/login`, { email, password }).pipe(
       tap(res => this.setToken(res?.accessToken))
     );
   }
