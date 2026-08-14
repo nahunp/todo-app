@@ -13,6 +13,16 @@
   <ul *ngIf="!loading() && todoLists().length">
     <li *ngFor="let list of todoLists()">
       <a [routerLink]="['/lists', list.id]">{{ list.name || '(untitled)' }}</a> <small *ngIf="list.id">— {{ list.id }}</small>
+
+      <ng-container *ngIf="pendingDeleteListId() !== list.id; else confirmDeleteTpl">
+        <button (click)="startDeleteList(list.id)">Delete</button>
+      </ng-container>
+
+      <ng-template #confirmDeleteTpl>
+        <span>Confirm delete?</span>
+        <button (click)="confirmDeleteList(list.id)">Yes</button>
+        <button (click)="cancelDeleteList()">No</button>
+      </ng-template>
     </li>
   </ul>
 
