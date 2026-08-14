@@ -140,6 +140,32 @@
             "description": "Not Found"
           }
         }
+      },
+      "delete": {
+        "tags": [
+          "TodoLists"
+        ],
+        "summary": "Deletes a todo list and all of its items.",
+        "operationId": "DeleteTodoList",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
       }
     },
     "/api/v1/todolists/{id}/items": {

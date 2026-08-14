@@ -85,10 +85,18 @@ agreed after the first PR shipped a feature that didn't actually work
 (a pre-commit hook that flagged any file containing the word "password").
 None of that would've cost more than a few minutes to catch pre-merge.
 
-Flow: Copilot opens a PR → Diego asks Claude to review it → Claude approves
-or flags concrete issues (with evidence — actually running the code, not
-just reading it) → Diego merges. This file should stay accurate enough
-that most issues get caught before the PR even opens, not after.
+**Current flow** (as of Copilot's environment losing a valid GitHub API
+token — git push still works, PR creation via the API doesn't): Copilot
+commits and pushes to its own branch, but does **not** open the PR itself
+→ Diego pings Claude → Claude pulls the branch, reviews it (with evidence —
+actually running the code, not just reading it), and opens the PR,
+crediting Copilot's actual authorship in the PR body → Diego merges.
+
+If Copilot's PR-creation ability comes back, the flow reverts to: Copilot
+opens the PR itself → Diego asks Claude to review → Claude approves or
+flags issues on the existing PR → Diego merges. Either way, this file
+should stay accurate enough that most issues get caught before merge,
+not after.
 
 **Always open a new branch/PR of your own.** Never push commits onto a
 branch or PR you didn't open — even one that looks related, even one still
