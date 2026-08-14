@@ -52,6 +52,14 @@ runners, etc.), update this section — it should track `frontend/`'s actual
 `frontend-ci.yml` runs on any change under `frontend/**` — build + test,
 mirroring `backend-ci.yml`'s gate on `development`/`release`/`master`.
 
+## Daily notes
+
+Log frontend work in [`docs/daily-notes/frontend/`](../docs/daily-notes/frontend/) —
+one file per day, `YYYY-MM-DD.md`, using that folder's `TEMPLATE.md`.
+Backend has its own separate log in `docs/daily-notes/backend/`; don't
+write to that one. See [`docs/daily-notes/README.md`](../docs/daily-notes/README.md)
+for why the split exists.
+
 ## Scope
 
 Stay inside `frontend/`. Repo-root tooling — `.github/workflows/`,
@@ -81,3 +89,16 @@ open. That's exactly how a real fix (switching to HttpClient, adding
 proxy.conf.json) ended up merged unreviewed: it landed as a second commit
 on someone else's already-in-flight docs PR instead of its own PR, so it
 rode through on that PR's approval instead of getting its own look.
+
+## Frontend findings become issues, not just chat
+
+When Claude finds a frontend bug or gap — in PR review, or from actually
+clicking through the running app (UAT, not just `curl`) — it gets filed as
+a GitHub issue labeled `frontend`, not just mentioned in conversation.
+Check [open `frontend`-labeled issues](https://github.com/nahunp/todo-app/issues?q=is%3Aissue+is%3Aopen+label%3Afrontend)
+before starting new work; one of them might already be the next thing to
+do. Issue #30 is the first of these — three things found by actually
+running the app in a browser (`prompt()`/`confirm()` silently failing in
+some browser contexts, a leftover Angular scaffold placeholder never
+deleted from `app.html`, no way to mark an item complete) that no amount
+of API-level testing would have caught.

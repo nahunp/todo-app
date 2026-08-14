@@ -281,6 +281,80 @@
           }
         }
       }
+    },
+    "/api/todolists/{id}/items/{itemId}/complete": {
+      "post": {
+        "tags": [
+          "TodoLists"
+        ],
+        "summary": "Marks an item as done.",
+        "operationId": "CompleteTodoItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/todolists/{id}/items/{itemId}/reopen": {
+      "post": {
+        "tags": [
+          "TodoLists"
+        ],
+        "summary": "Reopens a completed item.",
+        "operationId": "ReopenTodoItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
     }
   },
   "components": {
