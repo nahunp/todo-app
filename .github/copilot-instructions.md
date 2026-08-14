@@ -52,6 +52,14 @@ runners, etc.), update this section — it should track `frontend/`'s actual
 `frontend-ci.yml` runs on any change under `frontend/**` — build + test,
 mirroring `backend-ci.yml`'s gate on `development`/`release`/`master`.
 
+## Daily notes
+
+Log frontend work in [`docs/daily-notes/frontend/`](../docs/daily-notes/frontend/) —
+one file per day, `YYYY-MM-DD.md`, using that folder's `TEMPLATE.md`.
+Backend has its own separate log in `docs/daily-notes/backend/`; don't
+write to that one. See [`docs/daily-notes/README.md`](../docs/daily-notes/README.md)
+for why the split exists.
+
 ## Scope
 
 Stay inside `frontend/`. Repo-root tooling — `.github/workflows/`,
