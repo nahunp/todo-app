@@ -11,7 +11,7 @@ using TodoApp.WebApi.Common;
 using TodoApp.WebApi.Identity;
 using TodoApp.WebApi.TodoLists;
 
-const string FrontendDevCorsPolicy = "FrontendDev";
+const string FrontendCorsPolicy = "Frontend";
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -51,16 +51,21 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Angular's dev server (`ng serve`) runs on its own origin (localhost:4200)
-// — different port from this API (5080), so the browser blocks requests
-// between them without an explicit CORS policy. Scoped to exactly that
-// origin, not AllowAnyOrigin — this policy is meaningless as a security
-// boundary once there's a real deployed frontend origin, but that's a
-// problem for whenever deployment actually happens, not now.
+// Frontend is always a different origin from this API — localhost:4200 in
+// dev (ng serve), the deployed Static Web App's *.azurestaticapps.net
+// origin in production — so the browser blocks requests without an
+// explicit CORS policy either way. Origins come from configuration
+// (Cors:AllowedOrigins, see appsettings.json for the dev default; Azure
+// overrides it via the Cors__AllowedOrigins__0 app setting) rather than
+// being hardcoded, so a new deployed frontend origin is a config change,
+// not a code change. Scoped to specific origins, not AllowAnyOrigin.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? throw new InvalidOperationException("Cors:AllowedOrigins is not configured.");
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(FrontendDevCorsPolicy, policy =>
-        policy.WithOrigins("http://localhost:4200")
+    options.AddPolicy(FrontendCorsPolicy, policy =>
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
@@ -103,12 +108,11 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 
-    app.UseCors(FrontendDevCorsPolicy);
-
     // Convenience for local dev only: applies any pending migrations on
     // startup so `dotnet run` always reflects the latest schema without a
     // manual `dotnet ef database update` first. NOT how you'd want this in
-    // production — migrations there should run as an explicit deploy step,
+    // production — migrations there run as an explicit deploy step
+    // (`dotnet ef database update` against the target connection string),
     // not implicitly on every instance's startup (races if more than one
     // instance starts at once, no chance to review the SQL first).
     using var scope = app.Services.CreateScope();
@@ -119,6 +123,7 @@ if (app.Environment.IsDevelopment())
 // Must come before endpoint mapping so it can catch everything downstream.
 app.UseExceptionHandler();
 
+app.UseCors(FrontendCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
