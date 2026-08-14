@@ -1,6 +1,6 @@
 import { Component, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 
@@ -14,11 +14,14 @@ import { AuthService } from '../services/auth.service';
 export class LoginComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
 
   email = signal('');
   password = signal('');
   error = signal('');
   loading = signal(false);
+  // Set by RegisterComponent's redirect (?registered=1) after a successful registration.
+  justRegistered = signal(this.route.snapshot.queryParamMap.get('registered') === '1');
 
   submit() {
     this.error.set('');
