@@ -208,9 +208,26 @@ either filters by owner (`GetTodoListsQuery`) or calls
 touching someone else's list gets **404, not 403** — deliberate, so a
 non-owner can't tell a resource exists at all (OWASP-aligned).
 
-- `POST /api/v1/auth/register`, `POST /api/v1/auth/login` — the only
-  unauthenticated routes. Everything under `/api/v1/todolists` requires a
-  valid Bearer token (`RequireAuthorization()` on the route group).
+- `POST /api/v1/auth/register`, `POST /api/v1/auth/login`,
+  `GET /api/v1/auth/password-policy` — the only unauthenticated routes.
+  Everything under `/api/v1/todolists` requires a valid Bearer token
+  (`RequireAuthorization()` on the route group).
+- **Registration is hardened, since this app is meant to be shared
+  publicly**: `AddIdentityCore`'s password policy is set explicitly
+  (`Infrastructure/DependencyInjection.cs`) rather than left as unstated
+  defaults — `GET /api/v1/auth/password-policy` exposes the live values
+  so the frontend can build a real requirements checklist instead of
+  guessing. `RegisterCommand` also requires a `CaptchaToken`
+  (`ICaptchaService`/`TurnstileCaptchaService` — Cloudflare Turnstile),
+  verified *before* Identity is ever touched, so a bot hammering
+  `/register` doesn't cost a real `CreateUserAsync`/DB round-trip per
+  attempt. `Captcha:SecretKey` in config: locally and in the committed
+  `appsettings.json`, it's Cloudflare's own published always-passes test
+  secret (`1x0000...AA`, paired with test site key `1x0000...AA` on the
+  frontend) — not a real secret, safe to commit, specifically documented
+  by Cloudflare for exactly this. Production uses the real secret for the
+  Turnstile site actually registered against the deployed domain, set as
+  an Azure App Setting like every other real secret — never in source.
 - `AddIdentityCore` (not `AddIdentity`) in `Infrastructure/DependencyInjection.cs`
   — this is an API-only, no-cookie scenario, and `AddIdentity` would wire up
   a cookie auth scheme that conflicts with JWT Bearer as the sole scheme.

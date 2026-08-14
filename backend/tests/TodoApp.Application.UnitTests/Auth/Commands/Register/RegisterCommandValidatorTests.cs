@@ -11,7 +11,7 @@ public class RegisterCommandValidatorTests
     [Fact]
     public void Validate_WithValidCommand_HasNoErrors()
     {
-        var result = _validator.TestValidate(new RegisterCommand("user@example.com", "P@ssw0rd!"));
+        var result = _validator.TestValidate(new RegisterCommand("user@example.com", "P@ssw0rd!", "some-token"));
 
         result.ShouldNotHaveAnyValidationErrors();
     }
@@ -19,7 +19,7 @@ public class RegisterCommandValidatorTests
     [Fact]
     public void Validate_WithInvalidEmail_HasError()
     {
-        var result = _validator.TestValidate(new RegisterCommand("not-an-email", "P@ssw0rd!"));
+        var result = _validator.TestValidate(new RegisterCommand("not-an-email", "P@ssw0rd!", "some-token"));
 
         result.ShouldHaveValidationErrorFor(c => c.Email);
     }
@@ -27,8 +27,16 @@ public class RegisterCommandValidatorTests
     [Fact]
     public void Validate_WithEmptyPassword_HasError()
     {
-        var result = _validator.TestValidate(new RegisterCommand("user@example.com", ""));
+        var result = _validator.TestValidate(new RegisterCommand("user@example.com", "", "some-token"));
 
         result.ShouldHaveValidationErrorFor(c => c.Password);
+    }
+
+    [Fact]
+    public void Validate_WithEmptyCaptchaToken_HasError()
+    {
+        var result = _validator.TestValidate(new RegisterCommand("user@example.com", "P@ssw0rd!", ""));
+
+        result.ShouldHaveValidationErrorFor(c => c.CaptchaToken);
     }
 }

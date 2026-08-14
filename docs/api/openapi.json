@@ -10,7 +10,7 @@
         "tags": [
           "Auth"
         ],
-        "summary": "Creates a new user account.",
+        "summary": "Creates a new user account. Requires a verified Turnstile CaptchaToken.",
         "operationId": "Register",
         "requestBody": {
           "content": {
@@ -32,6 +32,27 @@
               "application/problem+json": {
                 "schema": {
                   "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/password-policy": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Returns the active password policy, for building a live requirements checklist.",
+        "operationId": "GetPasswordPolicy",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PasswordPolicyResponse"
                 }
               }
             }
@@ -743,6 +764,32 @@
         },
         "additionalProperties": false
       },
+      "PasswordPolicyResponse": {
+        "type": "object",
+        "properties": {
+          "requiredLength": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "requireDigit": {
+            "type": "boolean"
+          },
+          "requireLowercase": {
+            "type": "boolean"
+          },
+          "requireUppercase": {
+            "type": "boolean"
+          },
+          "requireNonAlphanumeric": {
+            "type": "boolean"
+          },
+          "requiredUniqueChars": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "PriorityLevel": {
         "enum": [
           "Low",
@@ -759,6 +806,10 @@
             "nullable": true
           },
           "password": {
+            "type": "string",
+            "nullable": true
+          },
+          "captchaToken": {
             "type": "string",
             "nullable": true
           }
