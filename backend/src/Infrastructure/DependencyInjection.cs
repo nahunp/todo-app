@@ -20,7 +20,18 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-        services.AddDbContext<ApplicationDbContext>(options => options.UseSqlServer(connectionString));
+        // EnableRetryOnFailure: Azure SQL's serverless free tier auto-pauses
+        // after a period of no activity and takes tens of seconds to resume.
+        // A request arriving during that resume can hit a transient error
+        // (Error 40613, "not currently available") that EF Core's default
+        // execution strategy doesn't retry - it surfaces as an unhandled
+        // exception (500), even though the underlying command frequently
+        // still completes moments later once the database finishes waking
+        // up (confirmed live: a DELETE that 500'd had actually deleted the
+        // row by the time the response came back). Local SQL Server Express
+        // has no such pause behavior, so this is a no-op there.
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseSqlServer(connectionString, sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
         // Handlers depend on IApplicationDbContext, never ApplicationDbContext
         // directly — this is the one place that connects the two.
