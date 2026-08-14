@@ -64,6 +64,18 @@ WebApi          -> references Application + Infrastructure (composition root)
     `item.Rename` directly — it's a convention (Application handlers always
     go through the aggregate), not an enforced one. Don't "fix" this by
     making it private; that breaks `TodoItemTests`.
+  - `TodoItem` also carries `Priority` (`PriorityLevel`: Low/Medium/High,
+    default Medium), `DueDate` (nullable), and `Category`
+    (`TodoItemCategory`: None/Work/Personal/Health, default None) — driven
+    by the Cloud Dancer brand standards' "todo-specific patterns" section
+    (`docs/design/brand-standards.pdf`). `Priority`/`DueDate` were already
+    scaffolded in Domain long before anything used them (dead code until
+    the Application/WebApi layers caught up); `Category` is new.
+    `TodoItem.GetDueDateState(asOf)` computes Overdue/Today/Upcoming/None
+    from `DueDate` — a pure function taking "now" as a parameter, not
+    calling `DateTimeOffset.UtcNow` itself, since it's a read-time
+    projection (what today's date is *when you ask*), not a fact being
+    recorded the way `CompletedAt` is. Never stored.
 - **Application** (`backend/src/Application/`): CQRS via MediatR. One
   folder per feature, vertical-slice style —
   `TodoLists/Commands/<Verb><Noun>/` and `TodoLists/Queries/<Noun>/`, each
@@ -116,6 +128,28 @@ WebApi          -> references Application + Infrastructure (composition root)
   changes, and is the source of truth for any client (this repo's frontend,
   or a future Android/iOS repo) — treat it as the contract, not the C#
   source.
+  - **Enums serialize as their string names** (`"High"`, `"Work"`), not
+    raw ints — `builder.Services.ConfigureHttpJsonOptions` in `Program.cs`
+    registers a global `JsonStringEnumConverter`. Two things that have to
+    move together whenever a new enum-typed field is added: (1) that
+    converter only changes *runtime* request/response bodies, not the
+    generated OpenAPI schema — Swashbuckle doesn't read
+    `JsonSerializerOptions.Converters` on its own, so
+    `WebApi/Common/EnumSchemaFilter.cs` (registered via
+    `options.SchemaFilter<EnumSchemaFilter>()` in the same `AddSwaggerGen`
+    call) is what keeps `docs/api/openapi.json` honest about it — found by
+    generating the spec and actually diffing it against a real
+    request/response, not by assuming they'd agree once the converter was
+    in. (2) `JsonStringEnumConverter` still accepts an in-range-for-int,
+    out-of-range-for-the-enum value (e.g. `"priority": 99`) — that's what
+    each `Set*` command's `.IsInEnum()` FluentValidation rule catches; the
+    converter alone isn't enough.
+  - **`BadHttpRequestException`** (a malformed request body — e.g. an enum
+    string that matches no defined name) is mapped to 400 in
+    `GlobalExceptionHandler`, same as the other "client sent something
+    wrong" cases. Found live: it fell through to the generic 500 case
+    before that mapping existed, which hid a client mistake behind a
+    server-error-shaped response.
 
 ## Testing
 
@@ -233,6 +267,11 @@ touching either service again:
   README.md). Worth automating once changes are frequent enough that
   manual redeploys get tedious.
 - **List CRUD is complete** as of this writing (create/rename/delete a
-  list; add/rename/remove/complete/reopen an item), now with per-user
-  ownership — if either stops being true, update this line, don't leave
-  it stale.
+  list; add/rename/remove/complete/reopen an item; set an item's
+  priority/due-date/category), with per-user ownership — if any of that
+  stops being true, update this line, don't leave it stale.
+- **Categories are a fixed 4-value enum** (None/Work/Personal/Health),
+  matching the brand standards' fixed color mapping for exactly those
+  three named categories. Not user-defined/arbitrary categories — that's
+  a materially bigger feature (category management, color assignment)
+  the brand guide doesn't ask for and this backend doesn't support yet.

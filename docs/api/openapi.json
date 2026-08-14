@@ -294,6 +294,177 @@
         }
       }
     },
+    "/api/v1/todolists/{id}/items/{itemId}/priority": {
+      "patch": {
+        "tags": [
+          "TodoLists"
+        ],
+        "summary": "Sets an item's priority.",
+        "operationId": "SetTodoItemPriority",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTodoItemPriorityRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/todolists/{id}/items/{itemId}/due-date": {
+      "patch": {
+        "tags": [
+          "TodoLists"
+        ],
+        "summary": "Sets or clears an item's due date (null clears it).",
+        "operationId": "SetTodoItemDueDate",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTodoItemDueDateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
+    "/api/v1/todolists/{id}/items/{itemId}/category": {
+      "patch": {
+        "tags": [
+          "TodoLists"
+        ],
+        "summary": "Sets an item's category.",
+        "operationId": "SetTodoItemCategory",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetTodoItemCategoryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HttpValidationProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found"
+          }
+        }
+      }
+    },
     "/api/v1/todolists/{id}/items/{itemId}": {
       "patch": {
         "tags": [
@@ -481,6 +652,9 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "category": {
+            "$ref": "#/components/schemas/TodoItemCategory"
           }
         },
         "additionalProperties": false
@@ -494,6 +668,15 @@
           }
         },
         "additionalProperties": false
+      },
+      "DueDateState": {
+        "enum": [
+          "None",
+          "Overdue",
+          "Today",
+          "Upcoming"
+        ],
+        "type": "string"
       },
       "HttpValidationProblemDetails": {
         "type": "object",
@@ -562,12 +745,11 @@
       },
       "PriorityLevel": {
         "enum": [
-          0,
-          1,
-          2
+          "Low",
+          "Medium",
+          "High"
         ],
-        "type": "integer",
-        "format": "int32"
+        "type": "string"
       },
       "RegisterCommand": {
         "type": "object",
@@ -603,6 +785,44 @@
         },
         "additionalProperties": false
       },
+      "SetTodoItemCategoryRequest": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "$ref": "#/components/schemas/TodoItemCategory"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetTodoItemDueDateRequest": {
+        "type": "object",
+        "properties": {
+          "dueDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetTodoItemPriorityRequest": {
+        "type": "object",
+        "properties": {
+          "priority": {
+            "$ref": "#/components/schemas/PriorityLevel"
+          }
+        },
+        "additionalProperties": false
+      },
+      "TodoItemCategory": {
+        "enum": [
+          "None",
+          "Work",
+          "Personal",
+          "Health"
+        ],
+        "type": "string"
+      },
       "TodoItemDto": {
         "type": "object",
         "properties": {
@@ -633,6 +853,12 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
+          },
+          "category": {
+            "$ref": "#/components/schemas/TodoItemCategory"
+          },
+          "dueDateState": {
+            "$ref": "#/components/schemas/DueDateState"
           }
         },
         "additionalProperties": false
