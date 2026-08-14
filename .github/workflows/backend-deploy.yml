@@ -20,6 +20,20 @@ concurrency:
   group: backend-deploy
   cancel-in-progress: false
 
+# id-token: write is what lets azure/login exchange a GitHub OIDC token for
+# an Azure access token — no stored client secret or publish-profile
+# password at all. Swapped in after azure/webapps-deploy + a publish
+# profile turned out not to work here: this App Service has SCM Basic Auth
+# publishing credentials disabled (Azure's secure-by-default setting), and
+# even after temporarily re-enabling it, the action still rejected the
+# profile ("invalid for app-name and slot-name provided") for reasons that
+# didn't reproduce with a plain `az webapp deploy`. OIDC + `az webapp
+# deploy` is both the fix and the more secure option, so kept even after
+# the underlying policy got fixed.
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     name: publish-and-deploy
@@ -42,12 +56,20 @@ jobs:
         run: Compress-Archive -Path publish-out/* -DestinationPath webapi.zip -Force
         shell: pwsh
 
-      - name: Deploy to Azure App Service
-        uses: azure/webapps-deploy@v3
+      # Federated (OIDC) login — the app registration
+      # (todoapp-github-actions-deploy) has a federated credential that
+      # trusts only `repo:nahunp/todo-app:ref:refs/heads/master`, and is
+      # scoped to nothing but this one App Service (Website Contributor,
+      # scoped to the resource, not the resource group).
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
         with:
-          app-name: todoapp-api-us3zbx
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: webapi.zip
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Deploy to Azure App Service
+        run: az webapp deploy --resource-group rg-todoapp --name todoapp-api-us3zbx --src-path webapi.zip --type zip
 
       # Deliberately NOT running `dotnet ef database update` here.
       # Program.cs's own comment on this: production migrations are meant
