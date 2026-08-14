@@ -2,11 +2,12 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, RenameItemCommand, RenameListCommand } from '../models/todo';
+import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class TodoListService {
   private http = inject(HttpClient);
-  private base = '/api/v1/todolists';
+  private base = `${environment.apiBaseUrl}/api/v1/todolists`;
 
   getLists(): Observable<TodoListDto[]> {
     return this.http.get<TodoListDto[]>(this.base);
