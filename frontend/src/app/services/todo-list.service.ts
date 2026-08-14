@@ -6,7 +6,7 @@ import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, Ren
 @Injectable({ providedIn: 'root' })
 export class TodoListService {
   private http = inject(HttpClient);
-  private base = '/api/todolists';
+  private base = '/api/v1/todolists';
 
   getLists(): Observable<TodoListDto[]> {
     return this.http.get<TodoListDto[]>(this.base);
