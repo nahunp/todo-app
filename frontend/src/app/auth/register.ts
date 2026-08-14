@@ -15,22 +15,23 @@ export class RegisterComponent {
   private auth = inject(AuthService);
   private router = inject(Router);
 
-  username = signal('');
+  email = signal('');
   password = signal('');
   error = signal('');
   loading = signal(false);
 
   submit() {
     this.error.set('');
-    if (!this.username() || !this.password()) {
-      this.error.set('username and password required');
+    if (!this.email() || !this.password()) {
+      this.error.set('email and password required');
       return;
     }
     this.loading.set(true);
-    this.auth.register(this.username(), this.password()).subscribe({
+    // backend register doesn't return a token — redirect to login after success
+    this.auth.register(this.email(), this.password()).subscribe({
       next: () => {
         this.loading.set(false);
-        this.router.navigate(['/lists']);
+        this.router.navigate(['/login'], { queryParams: { registered: '1' } });
       },
       error: (err) => {
         this.loading.set(false);

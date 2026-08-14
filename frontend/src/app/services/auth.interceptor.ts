@@ -1,17 +1,25 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpInterceptorFn, HttpRequest, HttpHandler } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { AuthService } from './auth.service';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
-@Injectable()
-export class AuthInterceptor implements HttpInterceptor {
-  private auth = inject(AuthService);
+export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<any>, next: HttpHandler) => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  const token = auth.getToken();
+  const authReq = token ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const token = this.auth.getToken();
-    if (!token) return next.handle(req);
-
-    const authReq = req.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
-    return next.handle(authReq);
-  }
-}
+  return next(authReq).pipe(
+    catchError((err) => {
+      if (err?.status === 401) {
+        // Clear token and redirect to login for auth-required routes
+        auth.logout();
+        // Navigation on error — best-effort
+        try { router.navigate(['/login']); } catch {}
+      }
+      return throwError(() => err);
+    })
+  );
+};

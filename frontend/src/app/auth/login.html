@@ -2,10 +2,10 @@
   <h2>Login</h2>
   <div *ngIf="error()" class="error">{{ error() }}</div>
   <div>
-    <label>Username <input [(ngModel)]="username" /></label>
+    <label>Email <input [ngModel]="email()" (ngModelChange)="email.set($event)" /></label>
   </div>
   <div>
-    <label>Password <input type="password" [(ngModel)]="password" /></label>
+    <label>Password <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" /></label>
   </div>
   <div>
     <button (click)="submit()" [disabled]="loading()">Login</button>

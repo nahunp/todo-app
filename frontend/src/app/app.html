@@ -1,6 +1,11 @@
 <nav>
   <a routerLink="/lists">Lists</a> |
-  <a routerLink="/login">Login</a> |
-  <a routerLink="/register">Register</a>
+  <ng-container *ngIf="!auth.isAuthenticated()">
+    <a routerLink="/login">Login</a> |
+    <a routerLink="/register">Register</a>
+  </ng-container>
+  <ng-container *ngIf="auth.isAuthenticated()">
+    <a (click)="auth.logout()" style="cursor:pointer">Logout</a>
+  </ng-container>
 </nav>
 <router-outlet />
