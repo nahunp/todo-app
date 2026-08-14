@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -22,6 +23,19 @@ builder.Services.AddInfrastructureServices(builder.Configuration);
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
+
+// Enums (PriorityLevel, TodoItemCategory, ...) over the wire as their
+// string names ("High", "Work"), not raw ints (2, 1) — found the hard way
+// while adding the branding-driven priority/category endpoints: the
+// default numeric encoding is opaque to read/write from any client (this
+// frontend, and eventually Android/iOS) and easy to get subtly wrong
+// (off-by-one on the wrong enum). Applies to both request binding and
+// response serialization, and Swashbuckle picks it up for Swagger's
+// schema too.
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -49,6 +63,12 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         },
     });
+
+    // Without this, the generated spec shows every enum (PriorityLevel,
+    // TodoItemCategory, DueDateState) as integer even though the API
+    // actually sends/accepts their string names — see EnumSchemaFilter's
+    // doc comment.
+    options.SchemaFilter<EnumSchemaFilter>();
 });
 
 // Frontend is always a different origin from this API — localhost:4200 in

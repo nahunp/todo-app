@@ -3,6 +3,7 @@ using TodoApp.Application.TodoLists.Commands.AddTodoItem;
 using TodoApp.Application.TodoLists.Commands.CreateTodoList;
 using TodoApp.Application.TodoLists.Queries.GetTodoList;
 using TodoApp.Application.UnitTests.Common;
+using TodoApp.Domain.Enums;
 using Xunit;
 
 namespace TodoApp.Application.UnitTests.TodoLists.Queries.GetTodoList;
@@ -40,6 +41,28 @@ public class GetTodoListQueryHandlerTests
         Assert.Equal("Buy milk", item.Title);
         Assert.Equal("2%", item.Notes);
         Assert.False(item.IsDone);
+        // Category/DueDateState are new — confirm the projection actually
+        // includes them (defaults here: no category set, no due date set).
+        Assert.Equal(TodoItemCategory.None, item.Category);
+        Assert.Equal(DueDateState.None, item.DueDateState);
+    }
+
+    [Theory]
+    [InlineData(-2, DueDateState.Overdue)]
+    [InlineData(0, DueDateState.Today)]
+    [InlineData(3, DueDateState.Upcoming)]
+    public async Task Handle_ComputesDueDateStateFromDueDate(int daysFromNow, DueDateState expected)
+    {
+        var context = ApplicationDbContextFake.Create();
+        var currentUser = new FakeCurrentUserService();
+        var listId = await new CreateTodoListCommandHandler(context, currentUser).Handle(new CreateTodoListCommand("Groceries"), CancellationToken.None);
+        await new AddTodoItemCommandHandler(context, currentUser).Handle(
+            new AddTodoItemCommand(listId, "Buy milk", DueDate: DateTimeOffset.UtcNow.AddDays(daysFromNow)), CancellationToken.None);
+        var handler = new GetTodoListQueryHandler(context, currentUser);
+
+        var result = await handler.Handle(new GetTodoListQuery(listId), CancellationToken.None);
+
+        Assert.Equal(expected, Assert.Single(result.Items).DueDateState);
     }
 
     [Fact]

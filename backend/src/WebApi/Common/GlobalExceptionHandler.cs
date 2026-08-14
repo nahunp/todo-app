@@ -63,6 +63,19 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Status = StatusCodes.Status404NotFound,
             },
 
+            // The request body wasn't valid JSON for the target type — most
+            // commonly a string that doesn't match any of an enum's names
+            // (e.g. "priority": "Urgent" when PriorityLevel only has Low/
+            // Medium/High). Found live: this fell through to the generic
+            // 500 case before, which is exactly backwards — a malformed
+            // body is a client mistake, not a server bug.
+            BadHttpRequestException badRequestException => new ProblemDetails
+            {
+                Title = "The request body could not be read.",
+                Detail = badRequestException.Message,
+                Status = StatusCodes.Status400BadRequest,
+            },
+
             // Login rejected the email/password pair — thrown from
             // LoginCommandHandler, deliberately not distinguishing "no such
             // user" from "wrong password" in the message either.

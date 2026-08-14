@@ -17,7 +17,13 @@ public record TodoItemDto(
     bool IsDone,
     DateTimeOffset? CompletedAt,
     PriorityLevel Priority,
-    DateTimeOffset? DueDate);
+    DateTimeOffset? DueDate,
+    TodoItemCategory Category,
+    // Computed at read time from DueDate, not a stored column — see
+    // TodoItem.GetDueDateState. Included here so every client (this
+    // frontend, and eventually Android/iOS) shows the same Overdue/Today/
+    // Upcoming without each re-implementing the date math itself.
+    DueDateState DueDateState);
 
 public record TodoListDetailDto(int Id, string Name, List<TodoItemDto> Items);
 
@@ -41,11 +47,17 @@ public class GetTodoListQueryHandler : IRequestHandler<GetTodoListQuery, TodoLis
 
         list.EnsureOwnedBy(_currentUser.UserId);
 
+        // One "now" for the whole projection, not one UtcNow call per item —
+        // so two items due exactly at today's boundary can't land on
+        // opposite sides of it just because a few ticks elapsed evaluating
+        // the LINQ between them.
+        var now = DateTimeOffset.UtcNow;
+
         return new TodoListDetailDto(
             list.Id,
             list.Name,
             list.Items
-                .Select(i => new TodoItemDto(i.Id, i.Title, i.Notes, i.IsDone, i.CompletedAt, i.Priority, i.DueDate))
+                .Select(i => new TodoItemDto(i.Id, i.Title, i.Notes, i.IsDone, i.CompletedAt, i.Priority, i.DueDate, i.Category, i.GetDueDateState(now)))
                 .ToList());
     }
 }

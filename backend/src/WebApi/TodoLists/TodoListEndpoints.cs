@@ -7,6 +7,9 @@ using TodoApp.Application.TodoLists.Commands.RemoveTodoItem;
 using TodoApp.Application.TodoLists.Commands.RenameTodoItem;
 using TodoApp.Application.TodoLists.Commands.RenameTodoList;
 using TodoApp.Application.TodoLists.Commands.ReopenTodoItem;
+using TodoApp.Application.TodoLists.Commands.SetTodoItemCategory;
+using TodoApp.Application.TodoLists.Commands.SetTodoItemDueDate;
+using TodoApp.Application.TodoLists.Commands.SetTodoItemPriority;
 using TodoApp.Application.TodoLists.Queries.GetTodoList;
 using TodoApp.Application.TodoLists.Queries.GetTodoLists;
 using TodoApp.Domain.Enums;
@@ -16,9 +19,12 @@ namespace TodoApp.WebApi.TodoLists;
 // Request bodies for routes where the id comes from the URL, not the body —
 // binding the command record directly would mean the client has to repeat
 // the id in the body too, which invites the two disagreeing.
-public record AddTodoItemRequest(string Title, string? Notes = null, PriorityLevel Priority = PriorityLevel.Medium, DateTimeOffset? DueDate = null);
+public record AddTodoItemRequest(string Title, string? Notes = null, PriorityLevel Priority = PriorityLevel.Medium, DateTimeOffset? DueDate = null, TodoItemCategory Category = TodoItemCategory.None);
 public record RenameTodoItemRequest(string NewTitle);
 public record RenameTodoListRequest(string NewName);
+public record SetTodoItemPriorityRequest(PriorityLevel Priority);
+public record SetTodoItemDueDateRequest(DateTimeOffset? DueDate);
+public record SetTodoItemCategoryRequest(TodoItemCategory Category);
 
 public static class TodoListEndpoints
 {
@@ -88,12 +94,45 @@ public static class TodoListEndpoints
 
         group.MapPost("/{id:int}/items", async (int id, AddTodoItemRequest body, ISender sender, CancellationToken cancellationToken) =>
         {
-            var itemId = await sender.Send(new AddTodoItemCommand(id, body.Title, body.Notes, body.Priority, body.DueDate), cancellationToken);
+            var itemId = await sender.Send(new AddTodoItemCommand(id, body.Title, body.Notes, body.Priority, body.DueDate, body.Category), cancellationToken);
             return Results.Created($"/api/v1/todolists/{id}/items/{itemId}", new { id = itemId });
         })
         .WithName("AddTodoItem")
         .WithSummary("Adds a new item to a todo list.")
         .Produces(StatusCodes.Status201Created)
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPatch("/{id:int}/items/{itemId:int}/priority", async (int id, int itemId, SetTodoItemPriorityRequest body, ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new SetTodoItemPriorityCommand(id, itemId, body.Priority), cancellationToken);
+            return Results.NoContent();
+        })
+        .WithName("SetTodoItemPriority")
+        .WithSummary("Sets an item's priority.")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPatch("/{id:int}/items/{itemId:int}/due-date", async (int id, int itemId, SetTodoItemDueDateRequest body, ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new SetTodoItemDueDateCommand(id, itemId, body.DueDate), cancellationToken);
+            return Results.NoContent();
+        })
+        .WithName("SetTodoItemDueDate")
+        .WithSummary("Sets or clears an item's due date (null clears it).")
+        .Produces(StatusCodes.Status204NoContent)
+        .ProducesValidationProblem()
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapPatch("/{id:int}/items/{itemId:int}/category", async (int id, int itemId, SetTodoItemCategoryRequest body, ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new SetTodoItemCategoryCommand(id, itemId, body.Category), cancellationToken);
+            return Results.NoContent();
+        })
+        .WithName("SetTodoItemCategory")
+        .WithSummary("Sets an item's category.")
+        .Produces(StatusCodes.Status204NoContent)
         .ProducesValidationProblem()
         .Produces(StatusCodes.Status404NotFound);
 

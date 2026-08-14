@@ -82,11 +82,11 @@ public class TodoList : BaseAuditableEntity
     /// purpose, so an item can't be constructed standalone somewhere else and
     /// then dropped into two different lists behind the aggregate's back.
     /// </summary>
-    public TodoItem AddItem(string title, string? notes = null, PriorityLevel priority = PriorityLevel.Medium, DateTimeOffset? dueDate = null)
+    public TodoItem AddItem(string title, string? notes = null, PriorityLevel priority = PriorityLevel.Medium, DateTimeOffset? dueDate = null, TodoItemCategory category = TodoItemCategory.None)
     {
         EnsureTitleIsUnique(title);
 
-        var item = new TodoItem(title, notes, priority, dueDate); // TodoItem still validates/trims its own title
+        var item = new TodoItem(title, notes, priority, dueDate, category); // TodoItem still validates/trims its own title
         _items.Add(item);
         return item;
     }
