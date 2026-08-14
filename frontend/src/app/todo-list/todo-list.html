@@ -14,7 +14,6 @@
     <div *ngFor="let list of todoLists()" class="list-item">
       <div class="list-content">
         <a [routerLink]="['/lists', list.id]" class="list-name">{{ list.name || '(untitled)' }}</a>
-        <small class="list-id" *ngIf="list.id">— {{ list.id }}</small>
       </div>
 
       <div class="list-actions">
