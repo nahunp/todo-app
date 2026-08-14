@@ -162,15 +162,53 @@ WebApi          -> references Application + Infrastructure (composition root)
   silently dropped commits once; the fix was diffing real trees, not
   re-reading PR descriptions.
 
+## Auth
+
+**Self-hosted ASP.NET Core Identity + JWT Bearer**, access-token-only
+(no refresh tokens yet — deliberate fast-follow, not an oversight).
+`TodoList.OwnerId` ties every list to the `ApplicationUser` that created
+it; every existing command/query handler takes `ICurrentUserService` and
+either filters by owner (`GetTodoListsQuery`) or calls
+`list.EnsureOwnedBy(_currentUser.UserId)` right after loading
+(`Application/Common/Security/OwnershipExtensions.cs`). A non-owner
+touching someone else's list gets **404, not 403** — deliberate, so a
+non-owner can't tell a resource exists at all (OWASP-aligned).
+
+- `POST /api/v1/auth/register`, `POST /api/v1/auth/login` — the only
+  unauthenticated routes. Everything under `/api/v1/todolists` requires a
+  valid Bearer token (`RequireAuthorization()` on the route group).
+- `AddIdentityCore` (not `AddIdentity`) in `Infrastructure/DependencyInjection.cs`
+  — this is an API-only, no-cookie scenario, and `AddIdentity` would wire up
+  a cookie auth scheme that conflicts with JWT Bearer as the sole scheme.
+- Infrastructure targets plain `Microsoft.NET.Sdk`, not `.Sdk.Web`, so it
+  needs `<FrameworkReference Include="Microsoft.AspNetCore.App" />` in its
+  `.csproj` to get `AddDefaultTokenProviders()` and friends — the standard
+  fix for "Identity in a class library."
+- **`options.MapInboundClaims = false`** on `AddJwtBearer` in `Program.cs`
+  is load-bearing, not cosmetic — without it, ASP.NET Core silently
+  rewrites short claim names (`sub`) to long `ClaimTypes` URIs, and
+  `CurrentUserService`'s `FindFirstValue(JwtRegisteredClaimNames.Sub)`
+  quietly stops matching.
+- Signing key lives in **User Secrets** as `Jwt:SigningKey`, alongside the
+  connection string — never in `appsettings.json`, never committed.
+  `Jwt:Issuer`/`Jwt:Audience` are non-secret and live in `appsettings.json`.
+- **Environment gotcha, hit once**: if a tool/process reads or writes
+  `%APPDATA%\Microsoft\UserSecrets\...\secrets.json` through a sandboxed
+  shell, its filesystem view of paths outside the repo can be stale
+  relative to what an unsandboxed shell (or the actual running app) sees.
+  If a freshly-written User Secrets value doesn't seem to take effect,
+  re-verify the file's content from a different tool before assuming the
+  app or the config system is broken.
+
 ## Open / not yet designed
 
-- **No auth or authorization at all.** Any client can see/edit every list.
-  Needs its own design conversation (token scheme, identity provider, how
-  `TodoList` gets ownership) before real user data or the Android/iOS
-  clients show up — don't bolt it on inline without that conversation.
+- **Refresh tokens** — access tokens are 60 minutes, no refresh flow yet.
+  Fine for now (single desktop client, short dev sessions); revisit before
+  Android/iOS clients need to stay logged in across app restarts.
 - **Not deployed anywhere.** Local SQL Server Express + `dotnet run` +
   `ng serve` only. README has said "deploying to Azure eventually" since
   day one; still eventually.
 - **List CRUD is complete** as of this writing (create/rename/delete a
-  list; add/rename/remove/complete/reopen an item) — if that stops being
-  true, update this line, don't leave it stale.
+  list; add/rename/remove/complete/reopen an item), now with per-user
+  ownership — if either stops being true, update this line, don't leave
+  it stale.

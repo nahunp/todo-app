@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Application.Common.Exceptions;
 using TodoApp.Application.Common.Interfaces;
+using TodoApp.Application.Common.Security;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Enums;
 
@@ -23,10 +24,12 @@ public record TodoListDetailDto(int Id, string Name, List<TodoItemDto> Items);
 public class GetTodoListQueryHandler : IRequestHandler<GetTodoListQuery, TodoListDetailDto>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetTodoListQueryHandler(IApplicationDbContext context)
+    public GetTodoListQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<TodoListDetailDto> Handle(GetTodoListQuery request, CancellationToken cancellationToken)
@@ -35,6 +38,8 @@ public class GetTodoListQueryHandler : IRequestHandler<GetTodoListQuery, TodoLis
             .Include(l => l.Items)
             .FirstOrDefaultAsync(l => l.Id == request.TodoListId, cancellationToken)
             ?? throw new NotFoundException(nameof(TodoList), request.TodoListId);
+
+        list.EnsureOwnedBy(_currentUser.UserId);
 
         return new TodoListDetailDto(
             list.Id,

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using TodoApp.Domain.Entities;
+using TodoApp.Infrastructure.Identity;
 
 namespace TodoApp.Infrastructure.Persistence.Configurations;
 
@@ -13,6 +14,27 @@ public class TodoListConfiguration : IEntityTypeConfiguration<TodoList>
         builder.Property(l => l.Name)
             .HasMaxLength(100)
             .IsRequired();
+
+        // 450, matching ASP.NET Core Identity's own convention for
+        // Id/UserName columns (kept under SQL Server's 900-byte composite
+        // index key limit). OwnerId is a plain string on the Domain side
+        // (TodoList doesn't reference ApplicationUser - that's an
+        // Infrastructure/Identity type), but there's still a real FK here
+        // at the database level: configured from this side since
+        // ApplicationUser has no reciprocal "Lists" navigation, same
+        // reasoning as the Items relationship below. Cascade: deleting a
+        // user deletes their lists (and, transitively, their items) rather
+        // than leaving orphaned rows.
+        builder.Property(l => l.OwnerId)
+            .HasMaxLength(450)
+            .IsRequired();
+
+        builder.HasIndex(l => l.OwnerId);
+
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(l => l.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         // TodoList.Items is IReadOnlyCollection<TodoItem> over a private
         // field (_items), by design — see TodoList.cs. EF Core supports

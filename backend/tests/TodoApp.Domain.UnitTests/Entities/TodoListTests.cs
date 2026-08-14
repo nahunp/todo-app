@@ -7,12 +7,24 @@ namespace TodoApp.Domain.UnitTests.Entities;
 
 public class TodoListTests
 {
+    private const string OwnerId = "owner-1";
+
     [Fact]
-    public void Constructor_WithValidName_SetsName()
+    public void Constructor_WithValidNameAndOwner_SetsNameAndOwnerId()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
 
         Assert.Equal("Groceries", list.Name);
+        Assert.Equal(OwnerId, list.OwnerId);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void Constructor_WithEmptyOrWhitespaceOwnerId_Throws(string? ownerId)
+    {
+        Assert.Throws<ArgumentException>(() => new TodoList(ownerId!, "Groceries"));
     }
 
     [Theory]
@@ -21,7 +33,7 @@ public class TodoListTests
     [InlineData(null)]
     public void Constructor_WithEmptyOrWhitespaceName_Throws(string? name)
     {
-        Assert.Throws<TodoListNameInvalidException>(() => new TodoList(name!));
+        Assert.Throws<TodoListNameInvalidException>(() => new TodoList(OwnerId, name!));
     }
 
     [Fact]
@@ -29,13 +41,13 @@ public class TodoListTests
     {
         var tooLong = new string('a', 101);
 
-        Assert.Throws<TodoListNameInvalidException>(() => new TodoList(tooLong));
+        Assert.Throws<TodoListNameInvalidException>(() => new TodoList(OwnerId, tooLong));
     }
 
     [Fact]
     public void Constructor_TrimsName()
     {
-        var list = new TodoList("  Groceries  ");
+        var list = new TodoList(OwnerId, "  Groceries  ");
 
         Assert.Equal("Groceries", list.Name);
     }
@@ -43,7 +55,7 @@ public class TodoListTests
     [Fact]
     public void Constructor_StartsWithNoItems()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
 
         Assert.Empty(list.Items);
     }
@@ -51,7 +63,7 @@ public class TodoListTests
     [Fact]
     public void Rename_WithValidName_UpdatesName()
     {
-        var list = new TodoList("Original");
+        var list = new TodoList(OwnerId, "Original");
 
         list.Rename("Updated");
 
@@ -61,7 +73,7 @@ public class TodoListTests
     [Fact]
     public void Rename_WithEmptyName_ThrowsAndLeavesOriginalNameUnchanged()
     {
-        var list = new TodoList("Original");
+        var list = new TodoList(OwnerId, "Original");
 
         Assert.Throws<TodoListNameInvalidException>(() => list.Rename(""));
         Assert.Equal("Original", list.Name);
@@ -70,7 +82,7 @@ public class TodoListTests
     [Fact]
     public void AddItem_WithUniqueTitle_AddsItemToList()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
 
         list.AddItem("Buy milk");
 
@@ -81,7 +93,7 @@ public class TodoListTests
     [Fact]
     public void AddItem_ReturnsTheCreatedItem()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
 
         var item = list.AddItem("Buy milk", priority: PriorityLevel.High);
 
@@ -92,7 +104,7 @@ public class TodoListTests
     [Fact]
     public void AddItem_WithDuplicateTitle_Throws()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         list.AddItem("Buy milk");
 
         Assert.Throws<DuplicateTodoItemTitleException>(() => list.AddItem("Buy milk"));
@@ -101,7 +113,7 @@ public class TodoListTests
     [Fact]
     public void AddItem_WithDuplicateTitleDifferentCaseAndWhitespace_Throws()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         list.AddItem("Buy milk");
 
         Assert.Throws<DuplicateTodoItemTitleException>(() => list.AddItem("  BUY MILK  "));
@@ -110,7 +122,7 @@ public class TodoListTests
     [Fact]
     public void AddItem_WithDuplicateTitle_DoesNotAddItem()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         list.AddItem("Buy milk");
 
         try
@@ -127,7 +139,7 @@ public class TodoListTests
     [Fact]
     public void AddItem_WithInvalidTitle_PropagatesTodoItemTitleInvalidException()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
 
         Assert.Throws<TodoItemTitleInvalidException>(() => list.AddItem(""));
     }
@@ -135,7 +147,7 @@ public class TodoListTests
     [Fact]
     public void RemoveItem_RemovesItemFromList()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         var item = list.AddItem("Buy milk");
 
         list.RemoveItem(item);
@@ -146,8 +158,8 @@ public class TodoListTests
     [Fact]
     public void RemoveItem_WithItemFromAnotherList_Throws()
     {
-        var list = new TodoList("Groceries");
-        var otherList = new TodoList("Work");
+        var list = new TodoList(OwnerId, "Groceries");
+        var otherList = new TodoList(OwnerId, "Work");
         var foreignItem = otherList.AddItem("Ship feature");
 
         Assert.Throws<TodoItemNotFoundInListException>(() => list.RemoveItem(foreignItem));
@@ -156,7 +168,7 @@ public class TodoListTests
     [Fact]
     public void RenameItem_WithUniqueTitle_RenamesItem()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         var item = list.AddItem("Buy milk");
 
         list.RenameItem(item, "Buy oat milk");
@@ -167,7 +179,7 @@ public class TodoListTests
     [Fact]
     public void RenameItem_WithDuplicateTitle_ThrowsAndLeavesOriginalTitleUnchanged()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         list.AddItem("Buy milk");
         var item = list.AddItem("Buy bread");
 
@@ -178,7 +190,7 @@ public class TodoListTests
     [Fact]
     public void RenameItem_ToItsOwnCurrentTitleWithDifferentCase_DoesNotThrow()
     {
-        var list = new TodoList("Groceries");
+        var list = new TodoList(OwnerId, "Groceries");
         var item = list.AddItem("Buy milk");
 
         list.RenameItem(item, "BUY MILK");
@@ -189,8 +201,8 @@ public class TodoListTests
     [Fact]
     public void RenameItem_WithItemFromAnotherList_Throws()
     {
-        var list = new TodoList("Groceries");
-        var otherList = new TodoList("Work");
+        var list = new TodoList(OwnerId, "Groceries");
+        var otherList = new TodoList(OwnerId, "Work");
         var foreignItem = otherList.AddItem("Ship feature");
 
         Assert.Throws<TodoItemNotFoundInListException>(() => list.RenameItem(foreignItem, "Ship faster"));

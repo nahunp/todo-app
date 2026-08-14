@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TodoApp.Application.Common.Exceptions;
 using TodoApp.Application.Common.Interfaces;
+using TodoApp.Application.Common.Security;
 using TodoApp.Domain.Entities;
 using TodoApp.Domain.Enums;
 
@@ -17,10 +18,12 @@ public record AddTodoItemCommand(
 public class AddTodoItemCommandHandler : IRequestHandler<AddTodoItemCommand, int>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public AddTodoItemCommandHandler(IApplicationDbContext context)
+    public AddTodoItemCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<int> Handle(AddTodoItemCommand request, CancellationToken cancellationToken)
@@ -34,6 +37,8 @@ public class AddTodoItemCommandHandler : IRequestHandler<AddTodoItemCommand, int
             .Include(l => l.Items)
             .FirstOrDefaultAsync(l => l.Id == request.TodoListId, cancellationToken)
             ?? throw new NotFoundException(nameof(TodoList), request.TodoListId);
+
+        list.EnsureOwnedBy(_currentUser.UserId);
 
         // AddItem enforces the list's own invariant (no duplicate titles)
         // and TodoItem's (title non-empty/length) — both DomainExceptions,
