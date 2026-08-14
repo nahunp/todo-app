@@ -81,3 +81,16 @@ open. That's exactly how a real fix (switching to HttpClient, adding
 proxy.conf.json) ended up merged unreviewed: it landed as a second commit
 on someone else's already-in-flight docs PR instead of its own PR, so it
 rode through on that PR's approval instead of getting its own look.
+
+## Frontend findings become issues, not just chat
+
+When Claude finds a frontend bug or gap — in PR review, or from actually
+clicking through the running app (UAT, not just `curl`) — it gets filed as
+a GitHub issue labeled `frontend`, not just mentioned in conversation.
+Check [open `frontend`-labeled issues](https://github.com/nahunp/todo-app/issues?q=is%3Aissue+is%3Aopen+label%3Afrontend)
+before starting new work; one of them might already be the next thing to
+do. Issue #30 is the first of these — three things found by actually
+running the app in a browser (`prompt()`/`confirm()` silently failing in
+some browser contexts, a leftover Angular scaffold placeholder never
+deleted from `app.html`, no way to mark an item complete) that no amount
+of API-level testing would have caught.
