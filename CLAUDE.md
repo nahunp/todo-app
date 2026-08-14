@@ -280,9 +280,12 @@ touching either service again:
 - **Refresh tokens** — access tokens are 60 minutes, no refresh flow yet.
   Fine for now (single desktop client, short dev sessions); revisit before
   Android/iOS clients need to stay logged in across app restarts.
-- **No CI/CD for deployment** — both sides are deployed by hand (see
-  README.md). Worth automating once changes are frequent enough that
-  manual redeploys get tedious.
+- **Deployment is automated as of today** — `backend-deploy.yml` /
+  `frontend-deploy.yml` deploy on every push to `master` (see README.md's
+  Deployment section). Database migrations are the deliberate exception —
+  still a manual step, same reasoning as `Program.cs`'s comment on why
+  they don't run on app startup either. If a change includes a migration,
+  apply it by hand before merging the code change to `master`.
 - **List CRUD is complete** as of this writing (create/rename/delete a
   list; add/rename/remove/complete/reopen an item; set an item's
   priority/due-date/category), with per-user ownership — if any of that
