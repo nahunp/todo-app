@@ -3,11 +3,11 @@
   <div *ngIf="error()" class="error">{{ error() }}</div>
   <div class="form-group">
     <label for="email">Email</label>
-    <input id="email" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" />
+    <input id="email" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" [disabled]="loading()" />
   </div>
   <div class="form-group">
     <label for="password">Password</label>
-    <input id="password" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" />
+    <input id="password" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" [disabled]="loading()" />
     <ul *ngIf="passwordRules().length" class="password-checklist">
       <li *ngFor="let rule of passwordRules()" [class.met]="rule.met">
         <span class="password-checklist-icon">{{ rule.met ? '✓' : '○' }}</span>
@@ -22,6 +22,13 @@
     <div #turnstileContainer></div>
   </div>
   <div class="form-group">
-    <button class="btn btn-primary" (click)="submit()" [disabled]="loading() || !captchaToken()">Register</button>
+    <button class="btn btn-primary" (click)="submit()" [disabled]="loading() || !captchaToken()">
+      <span *ngIf="!loading()">Register</span>
+      <span *ngIf="loading()">Creating account…</span>
+    </button>
+    <!-- Same free-tier cold-start reasoning as login.html. -->
+    <p *ngIf="loading()" class="loading-hint">
+      This can take a little longer than usual if the database has been idle.
+    </p>
   </div>
 </div>
