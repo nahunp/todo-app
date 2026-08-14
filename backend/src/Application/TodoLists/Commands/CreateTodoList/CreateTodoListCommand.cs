@@ -13,10 +13,12 @@ public record CreateTodoListCommand(string Name) : IRequest<int>;
 public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListCommand, int>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public CreateTodoListCommandHandler(IApplicationDbContext context)
+    public CreateTodoListCommandHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<int> Handle(CreateTodoListCommand request, CancellationToken cancellationToken)
@@ -29,7 +31,11 @@ public class CreateTodoListCommandHandler : IRequestHandler<CreateTodoListComman
         // return a clean 400 with field-level errors); the entity's own
         // check guards "can a TodoList ever exist in an invalid state?",
         // no matter what code constructs one, today or in five years.
-        var entity = new TodoList(request.Name);
+        //
+        // _currentUser.UserId! - the endpoint is .RequireAuthorization()'d,
+        // so a null UserId here would mean the auth pipeline itself is
+        // broken, not something this handler should try to handle gracefully.
+        var entity = new TodoList(_currentUser.UserId!, request.Name);
 
         _context.TodoLists.Add(entity);
 

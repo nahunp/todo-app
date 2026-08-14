@@ -47,6 +47,16 @@ public class GlobalExceptionHandler : IExceptionHandler
                 Status = StatusCodes.Status404NotFound,
             },
 
+            // Login rejected the email/password pair — thrown from
+            // LoginCommandHandler, deliberately not distinguishing "no such
+            // user" from "wrong password" in the message either.
+            UnauthorizedAccessException unauthorizedException => new ProblemDetails
+            {
+                Title = "Authentication failed.",
+                Detail = unauthorizedException.Message,
+                Status = StatusCodes.Status401Unauthorized,
+            },
+
             // Anything else is a bug or an infrastructure failure, not
             // something the caller did wrong — no exception details leak
             // into the response.

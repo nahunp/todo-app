@@ -10,19 +10,20 @@ public class CreateTodoListCommandHandlerTests
     public async Task Handle_CreatesTodoListWithGivenName()
     {
         var context = ApplicationDbContextFake.Create();
-        var handler = new CreateTodoListCommandHandler(context);
+        var handler = new CreateTodoListCommandHandler(context, new FakeCurrentUserService());
 
         var id = await handler.Handle(new CreateTodoListCommand("Groceries"), CancellationToken.None);
 
         var created = context.TodoLists.Single(l => l.Id == id);
         Assert.Equal("Groceries", created.Name);
+        Assert.Equal(FakeCurrentUserService.DefaultUserId, created.OwnerId);
     }
 
     [Fact]
     public async Task Handle_ReturnsAPersistedId()
     {
         var context = ApplicationDbContextFake.Create();
-        var handler = new CreateTodoListCommandHandler(context);
+        var handler = new CreateTodoListCommandHandler(context, new FakeCurrentUserService());
 
         var id = await handler.Handle(new CreateTodoListCommand("Groceries"), CancellationToken.None);
 
@@ -35,7 +36,7 @@ public class CreateTodoListCommandHandlerTests
     public async Task Handle_NewListStartsWithNoItems()
     {
         var context = ApplicationDbContextFake.Create();
-        var handler = new CreateTodoListCommandHandler(context);
+        var handler = new CreateTodoListCommandHandler(context, new FakeCurrentUserService());
 
         var id = await handler.Handle(new CreateTodoListCommand("Groceries"), CancellationToken.None);
 
@@ -51,7 +52,7 @@ public class CreateTodoListCommandHandlerTests
         // this exercises TodoList's own invariant (SetName), the same
         // defence-in-depth point noted in CreateTodoListCommandHandler.
         var context = ApplicationDbContextFake.Create();
-        var handler = new CreateTodoListCommandHandler(context);
+        var handler = new CreateTodoListCommandHandler(context, new FakeCurrentUserService());
 
         await Assert.ThrowsAsync<TodoApp.Domain.Exceptions.TodoListNameInvalidException>(
             () => handler.Handle(new CreateTodoListCommand(""), CancellationToken.None));

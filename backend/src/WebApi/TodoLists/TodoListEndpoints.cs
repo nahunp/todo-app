@@ -28,7 +28,11 @@ public static class TodoListEndpoints
         // Angular app) depending on this shape. Once mobile clients exist
         // too, a breaking change means coordinating three teams instead of
         // rewriting one call site. Cheap now, expensive later.
-        var group = app.MapGroup("/api/v1/todolists").WithTags("TodoLists");
+        //
+        // .RequireAuthorization() on the group, not each route — every
+        // TodoList endpoint needs a caller, unlike AuthEndpoints (register/
+        // login are the only unauthenticated routes in the whole API).
+        var group = app.MapGroup("/api/v1/todolists").WithTags("TodoLists").RequireAuthorization();
 
         // ISender, not IMediator — endpoints only ever Send commands/queries
         // here, never Publish notifications directly.

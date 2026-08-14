@@ -19,15 +19,21 @@ public record TodoListDto(int Id, string Name);
 public class GetTodoListsQueryHandler : IRequestHandler<GetTodoListsQuery, List<TodoListDto>>
 {
     private readonly IApplicationDbContext _context;
+    private readonly ICurrentUserService _currentUser;
 
-    public GetTodoListsQueryHandler(IApplicationDbContext context)
+    public GetTodoListsQueryHandler(IApplicationDbContext context, ICurrentUserService currentUser)
     {
         _context = context;
+        _currentUser = currentUser;
     }
 
     public async Task<List<TodoListDto>> Handle(GetTodoListsQuery request, CancellationToken cancellationToken)
     {
+        // Filtered here, not checked-per-item after loading everything —
+        // "list all your lists" should never see another user's rows in
+        // the first place, not filter them out after the fact.
         return await _context.TodoLists
+            .Where(l => l.OwnerId == _currentUser.UserId)
             .OrderBy(l => l.Name)
             .Select(l => new TodoListDto(l.Id, l.Name))
             .ToListAsync(cancellationToken);
