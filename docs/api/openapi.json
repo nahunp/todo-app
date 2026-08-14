@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/api/todolists": {
+    "/api/v1/todolists": {
       "get": {
         "tags": [
           "TodoLists"
@@ -61,7 +61,7 @@
         }
       }
     },
-    "/api/todolists/{id}": {
+    "/api/v1/todolists/{id}": {
       "get": {
         "tags": [
           "TodoLists"
@@ -142,7 +142,7 @@
         }
       }
     },
-    "/api/todolists/{id}/items": {
+    "/api/v1/todolists/{id}/items": {
       "post": {
         "tags": [
           "TodoLists"
@@ -190,7 +190,7 @@
         }
       }
     },
-    "/api/todolists/{id}/items/{itemId}": {
+    "/api/v1/todolists/{id}/items/{itemId}": {
       "patch": {
         "tags": [
           "TodoLists"
@@ -282,7 +282,7 @@
         }
       }
     },
-    "/api/todolists/{id}/items/{itemId}/complete": {
+    "/api/v1/todolists/{id}/items/{itemId}/complete": {
       "post": {
         "tags": [
           "TodoLists"
@@ -319,7 +319,7 @@
         }
       }
     },
-    "/api/todolists/{id}/items/{itemId}/reopen": {
+    "/api/v1/todolists/{id}/items/{itemId}/reopen": {
       "post": {
         "tags": [
           "TodoLists"
