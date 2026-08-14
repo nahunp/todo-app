@@ -41,4 +41,8 @@ export class TodoListService {
     const body: RenameListCommand = { newName };
     return this.http.patch<void>(`${this.base}/${listId}`, body);
   }
+
+  deleteList(listId: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${listId}`);
+  }
 }

@@ -25,7 +25,6 @@ export interface TodoListDto {
 })
 export class TodoList implements OnInit {
   private http = inject(HttpClient);
-  private service = inject(TodoListService);
 
   todoLists = signal<TodoListDto[]>([]);
   loading = signal(true);
@@ -55,6 +54,9 @@ export class TodoList implements OnInit {
       });
   }
 
+  // inject service for list operations
+  private service = inject(TodoListService);
+
   create(name: string) {
     if (!name) return;
     const body: CreateTodoListCommand = { name };
@@ -77,9 +79,12 @@ export class TodoList implements OnInit {
   }
 
   confirmDeleteList(id: number) {
-    this.service.deleteList(id).subscribe(() => {
-      this.pendingDeleteListId.set(null);
-      this.load();
-    }, err => this.error.set(err?.message ?? String(err)));
+    this.service.deleteList(id).subscribe({
+      next: () => {
+        this.pendingDeleteListId.set(null);
+        this.load();
+      },
+      error: (err: unknown) => this.error.set((err as { message?: string })?.message ?? String(err)),
+    });
   }
 }
