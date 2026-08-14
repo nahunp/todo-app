@@ -51,3 +51,9 @@
   font-weight: 400;
 }
 
+.loading-hint {
+  color: #666;
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+

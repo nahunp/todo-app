@@ -1,5 +1,27 @@
 # Releases
 
+## v1.0.1 — 2026-08-14 (bugfix, post-golive)
+
+Diego reported that hitting Login on the live production site sometimes
+appeared to do nothing — no navigation, no error. Root cause was most
+likely Azure SQL's free-tier cold start (documented limitation) combined
+with the login/register forms giving zero visual feedback while a request
+was in flight — a slow-but-working request and a genuinely broken one
+looked identical. Along the way, also found the error messages shown on
+failure were Angular's generic technical text ("Http failure response for
+...") rather than the backend's actual reason, and the auth interceptor
+was treating a failed *login attempt itself* as a session-expiry signal
+(logging out + redirecting on any 401, including from `/auth/login`).
+
+- Login/Register buttons now show "Logging in…" / "Creating account…"
+  and a hint about free-tier cold starts while a request is in flight;
+  inputs disable too, not just the button.
+- Both forms now surface the backend's actual error `detail` (e.g.
+  "Invalid email or password.") instead of a generic technical message,
+  including a specific message for network-level failures (status 0).
+- The auth interceptor no longer treats a 401 from `/auth/login` or
+  `/auth/register` as a session-expiry event.
+
 ## v1.0.0 — 2026-08-14
 
 First and, for now, final release of the web app. This project's purpose was

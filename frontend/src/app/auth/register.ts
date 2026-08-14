@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AuthService, PasswordPolicy } from '../services/auth.service';
 import { runtimeConfig } from '../runtime-config';
+import { extractErrorMessage } from '../shared/http-error';
 
 // Cloudflare's Turnstile script (loaded in index.html) attaches this
 // global — not an npm package, there's no official Angular wrapper worth
@@ -133,7 +134,7 @@ export class RegisterComponent implements OnInit, AfterViewInit, OnDestroy {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(err?.message ?? String(err));
+        this.error.set(extractErrorMessage(err));
         // A Turnstile token is single-use — a failed submit (e.g. a weak
         // password rejected by Identity) needs a fresh one, not a stale
         // token that'll just fail verification again on retry.
