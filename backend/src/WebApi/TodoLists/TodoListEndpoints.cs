@@ -2,6 +2,7 @@ using MediatR;
 using TodoApp.Application.TodoLists.Commands.AddTodoItem;
 using TodoApp.Application.TodoLists.Commands.CompleteTodoItem;
 using TodoApp.Application.TodoLists.Commands.CreateTodoList;
+using TodoApp.Application.TodoLists.Commands.DeleteTodoList;
 using TodoApp.Application.TodoLists.Commands.RemoveTodoItem;
 using TodoApp.Application.TodoLists.Commands.RenameTodoItem;
 using TodoApp.Application.TodoLists.Commands.RenameTodoList;
@@ -69,6 +70,16 @@ public static class TodoListEndpoints
         .WithSummary("Renames a todo list.")
         .Produces(StatusCodes.Status204NoContent)
         .ProducesValidationProblem()
+        .Produces(StatusCodes.Status404NotFound);
+
+        group.MapDelete("/{id:int}", async (int id, ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new DeleteTodoListCommand(id), cancellationToken);
+            return Results.NoContent();
+        })
+        .WithName("DeleteTodoList")
+        .WithSummary("Deletes a todo list and all of its items.")
+        .Produces(StatusCodes.Status204NoContent)
         .Produces(StatusCodes.Status404NotFound);
 
         group.MapPost("/{id:int}/items", async (int id, AddTodoItemRequest body, ISender sender, CancellationToken cancellationToken) =>
