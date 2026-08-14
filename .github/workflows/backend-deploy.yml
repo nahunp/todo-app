@@ -67,9 +67,17 @@ jobs:
 
       # Federated (OIDC) login — the app registration
       # (todoapp-github-actions-deploy) has a federated credential that
-      # trusts only `repo:nahunp/todo-app:ref:refs/heads/master`, and is
-      # scoped to nothing but this one App Service (Website Contributor,
-      # scoped to the resource, not the resource group).
+      # trusts only one subject, and is scoped to nothing but this one App
+      # Service (Website Contributor, scoped to the resource, not the
+      # resource group). The subject is
+      # `repo:nahunp@21084000/todo-app@1332758449:ref:refs/heads/master`,
+      # NOT the more commonly documented `repo:nahunp/todo-app:ref:...` —
+      # this GitHub org/repo issues OIDC subject claims with the
+      # `<login>@<numeric-id>` form. Only found out by reading a failed
+      # run's actual "Federated token details" log line
+      # (AADSTS700213 doesn't say what subject it expected, only what
+      # it got) — if this ever needs recreating, check a live failure's
+      # logs for the real subject before assuming the plain-name form.
       - name: Azure login (OIDC)
         uses: azure/login@v2
         with:
