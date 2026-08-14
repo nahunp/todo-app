@@ -1,0 +1,61 @@
+name: Backend Deploy
+
+# master is the production baseline (see README.md's Branching section) —
+# deploy whenever backend/** lands there. master is protected and requires
+# backend-ci.yml's build-and-test to pass before a merge can reach it, so
+# by the time this trigger fires the code has already been built and
+# tested once; publishing again here is just to produce the actual deploy
+# artifact, not a substitute for that gate.
+on:
+  push:
+    branches: [master]
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-deploy.yml"
+
+# Only one deploy in flight at a time — a second push landing mid-deploy
+# waits for the first to finish rather than racing it against the same
+# App Service slot.
+concurrency:
+  group: backend-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: publish-and-deploy
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Publish
+        run: dotnet publish backend/src/WebApi/TodoApp.WebApi.csproj -c Release -o publish-out
+
+      - name: Zip artifact
+        run: Compress-Archive -Path publish-out/* -DestinationPath webapi.zip -Force
+        shell: pwsh
+
+      - name: Deploy to Azure App Service
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: todoapp-api-us3zbx
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: webapi.zip
+
+      # Deliberately NOT running `dotnet ef database update` here.
+      # Program.cs's own comment on this: production migrations are meant
+      # to be an explicit, reviewed step against the target connection
+      # string, not something that runs unattended on every deploy (no
+      # chance to review the SQL first, and this project's Azure SQL
+      # server isn't network-reachable from GitHub-hosted runners without
+      # a firewall/credential change nobody's asked for yet). When a
+      # change includes a migration, apply it by hand first — see
+      # README.md's Deployment section for the exact command — then land
+      # the code change here.

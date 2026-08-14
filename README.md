@@ -18,6 +18,10 @@ A Todo app built step by step to learn Clean Architecture, SOLID principles, and
 
 Each row's three columns run left to right in promotion order, matching the `development` → `release` → `master` pipeline described below, so each badge's label names its own branch. Every badge is live: green means the latest commit on that branch builds and every test passes, red means something's broken (or, for frontend, that nothing has touched `frontend/` on that branch yet). Click a badge to jump straight to that branch's run history.
 
+**Deploy** (`backend-deploy.yml` / `frontend-deploy.yml`, `master` only — see Deployment below):
+
+[![backend deploy](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/backend-deploy.yml?branch=master&label=backend)](https://github.com/nahunp/todo-app/actions/workflows/backend-deploy.yml) [![frontend deploy](https://img.shields.io/github/actions/workflow/status/nahunp/todo-app/frontend-deploy.yml?branch=master&label=frontend)](https://github.com/nahunp/todo-app/actions/workflows/frontend-deploy.yml)
+
 ## Structure
 
 ```
@@ -84,8 +88,27 @@ region if it happens again):
 | Azure SQL (free offer, serverless) | `todoapp-sql-aeyls0` / `TodoAppDb` | Database |
 | Static Web App (free) | `todoapp-web-vawdeh` | Frontend |
 
-No CI/CD pipeline for deployment yet — both sides are deployed by hand from
-a local build. To redeploy:
+**Automated**: `backend-deploy.yml` and `frontend-deploy.yml` deploy
+automatically on every push to `master` that touches `backend/**` or
+`frontend/**` respectively — `master` is already gated on `build-and-test`
+passing (see Branching above), so by the time either workflow fires the
+code's already been through CI once. Both use secrets set directly from
+`az` into GitHub (`AZURE_WEBAPP_PUBLISH_PROFILE`,
+`AZURE_STATIC_WEB_APPS_DEPLOYMENT_TOKEN` — nobody ever pasted these
+anywhere; see each workflow file's own comments) plus the `TURNSTILE_SITE_KEY`
+repo variable (not a secret — Turnstile site keys are meant to ship in
+client code).
+
+**Not automated, on purpose**: database migrations. `Program.cs`'s comment
+explains why production migrations stay an explicit, reviewed step instead
+of running unattended — and this repo's Azure SQL server isn't
+network-reachable from GitHub-hosted runners without a firewall change
+nobody's asked for. When a change includes a migration, apply it by hand
+(see below) before merging the code change to `master`.
+
+The commands below are what both workflows now run automatically; they're
+still here as the manual fallback and because the migration step still
+needs running by hand:
 
 **Backend**:
 ```powershell
@@ -122,11 +145,14 @@ committing a different value:
 ```powershell
 cd frontend
 npm run build -- --configuration production
-'window.__appConfig = { apiBaseUrl: "https://todoapp-api-us3zbx.azurewebsites.net" };' | Set-Content dist/frontend/browser/config.js -NoNewline
+'window.__appConfig = { apiBaseUrl: "https://todoapp-api-us3zbx.azurewebsites.net", turnstileSiteKey: "0x4AAAAAAEQFpnAuzJIu2S8Z" };' | Set-Content dist/frontend/browser/config.js -NoNewline
 npx @azure/static-web-apps-cli deploy --app-location dist/frontend/browser --deployment-token <token> --env production
 ```
 The deployment token is in the Static Web App's Azure Portal blade (or
-`az staticwebapp secrets list`) — not committed anywhere.
+`az staticwebapp secrets list`) — not committed anywhere. The site key is
+public by design (see `runtime-config.ts`'s doc comment) — safe to write
+here in plain text; it's the paired *secret* key (Azure App Setting
+`Captcha:SecretKey` on the backend) that must never appear in source.
 
 **Known limitation**: Azure SQL's free-tier database is serverless and
 auto-pauses after a period of no activity, taking tens of seconds to
