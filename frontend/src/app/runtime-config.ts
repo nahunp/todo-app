@@ -11,12 +11,21 @@
 // involved at all.
 declare global {
   interface Window {
-    __appConfig?: { apiBaseUrl?: string };
+    __appConfig?: { apiBaseUrl?: string; turnstileSiteKey?: string };
   }
 }
 
 export const runtimeConfig = {
   get apiBaseUrl(): string {
     return window.__appConfig?.apiBaseUrl ?? '';
+  },
+  // Public by design — Turnstile's site key is meant to ship in client
+  // code (it identifies *which* site is asking for verification, not a
+  // credential). The secret key that actually verifies tokens stays
+  // backend-only and never reaches this file. Same runtime-config split
+  // as apiBaseUrl: Cloudflare's published test key here for local dev,
+  // the real production key set via config.js at deploy time.
+  get turnstileSiteKey(): string {
+    return window.__appConfig?.turnstileSiteKey ?? '1x00000000000000000000AA';
   },
 };

@@ -10,6 +10,9 @@
     <label for="password">Password</label>
     <input id="password" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" />
   </div>
+  <div class="tag tag-warning password-reuse-warning">
+    This is a personal demo project, not a production service — please use a throwaway password, not one you use elsewhere.
+  </div>
   <div class="form-group">
     <button class="btn btn-primary" (click)="submit()" [disabled]="loading()">Login</button>
   </div>

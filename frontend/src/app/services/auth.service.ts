@@ -8,6 +8,18 @@ export interface AuthResponse {
   expiresAt?: string | null;
 }
 
+// Matches WebApi's PasswordPolicyResponse exactly (AuthEndpoints.cs) —
+// fetched, not hardcoded, so the frontend's requirements checklist can
+// never drift from what the backend actually enforces.
+export interface PasswordPolicy {
+  requiredLength: number;
+  requireDigit: boolean;
+  requireLowercase: boolean;
+  requireUppercase: boolean;
+  requireNonAlphanumeric: boolean;
+  requiredUniqueChars: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly storageKey = 'todoapp_token';
@@ -20,9 +32,15 @@ export class AuthService {
   // Simple reactive state for whether a token exists
   isAuthenticated = signal<boolean>(!!this.getToken());
 
-  // Register: backend returns 201 empty body — don't expect a token here
-  register(email: string, password: string) {
-    return this.http.post<void>(`${this.base}/register`, { email, password });
+  // Register: backend returns 201 empty body — don't expect a token here.
+  // captchaToken comes from the Turnstile widget on the register form —
+  // backend rejects the request (400) without a token that verifies.
+  register(email: string, password: string, captchaToken: string) {
+    return this.http.post<void>(`${this.base}/register`, { email, password, captchaToken });
+  }
+
+  getPasswordPolicy() {
+    return this.http.get<PasswordPolicy>(`${this.base}/password-policy`);
   }
 
   login(email: string, password: string) {
