@@ -1,1 +1,442 @@
-/* You can add global styles to this file, and also import other style files */
+/* Cloud Dancer brand standards — global styles and component classes */
+
+/* ===== 1. Global Foundation ===== */
+
+:root {
+  /* Color tokens */
+  --color-bg: #F1EFE8;
+  --color-surface: #F8F6F1;
+  --color-text: #201E1D;
+  --color-accent: #4E76AC;      /* primary actions, links, focus */
+  --color-accent-2: #E14459;    /* high priority, destructive */
+  --tf-warning: #F5820A;        /* due today */
+  --tf-success: #748F2B;        /* darkened — completed */
+  --tf-info: #5C93C9;           /* category: Work */
+  --tf-purple: #9C5C90;         /* category: Personal */
+  --tf-teal: #3B9C93;           /* category: Health */
+  --tf-citron: #B9924A;         /* upcoming due date */
+  
+  /* Typography */
+  --font-heading: "Archivo", system-ui, sans-serif;
+  --font-body: "Archivo", system-ui, sans-serif;
+}
+
+/* Base typography rules */
+h1 {
+  font-family: var(--font-heading);
+  font-size: 42px;
+  font-weight: 800;
+  text-align: left;
+  margin: 0;
+}
+
+h2 {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 800;
+  text-align: left;
+  margin: 0;
+}
+
+h3 {
+  font-family: var(--font-heading);
+  font-size: 25px;
+  font-weight: 800;
+  text-align: left;
+  margin: 0;
+}
+
+h4 {
+  font-family: var(--font-heading);
+  font-size: 20px;
+  font-weight: 800;
+  text-align: left;
+  margin: 0;
+}
+
+body,
+p,
+span,
+div {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--color-text);
+}
+
+/* Caption: 12px/600 */
+.caption {
+  font-family: var(--font-body);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Base spacing and structure */
+body {
+  background-color: var(--color-bg);
+  margin: 0;
+  padding: 0;
+}
+
+/* No rounded corners anywhere */
+* {
+  border-radius: 0px;
+}
+
+/* Spacing scale: 4, 8, 12, 16, 24, 32, 48 */
+.gap-4 { gap: 4px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.gap-16 { gap: 16px; }
+.gap-24 { gap: 24px; }
+.gap-32 { gap: 32px; }
+.gap-48 { gap: 48px; }
+
+.p-4 { padding: 4px; }
+.p-8 { padding: 8px; }
+.p-12 { padding: 12px; }
+.p-16 { padding: 16px; }
+.p-24 { padding: 24px; }
+.p-32 { padding: 32px; }
+.p-48 { padding: 48px; }
+
+.m-4 { margin: 4px; }
+.m-8 { margin: 8px; }
+.m-12 { margin: 12px; }
+.m-16 { margin: 16px; }
+.m-24 { margin: 24px; }
+.m-32 { margin: 32px; }
+.m-48 { margin: 48px; }
+
+/* ===== 2. Component Classes ===== */
+
+/* Buttons */
+.btn {
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 24px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s ease;
+  display: inline-block;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-primary {
+  background-color: var(--color-accent);
+  color: white;
+  border: 2px solid var(--color-accent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #3e5f8a;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-text);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: rgba(32, 30, 29, 0.05);
+}
+
+.btn-link {
+  background-color: transparent;
+  color: var(--color-accent);
+  border: 2px solid transparent;
+  padding: 8px 16px;
+}
+
+.btn-link:hover:not(:disabled) {
+  color: #3e5f8a;
+}
+
+.btn-cancel {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 2px solid var(--color-text);
+}
+
+.btn-cancel:hover:not(:disabled) {
+  background-color: rgba(32, 30, 29, 0.05);
+}
+
+.btn-destructive {
+  background-color: var(--color-accent-2);
+  color: white;
+  border: 2px solid var(--color-accent-2);
+}
+
+.btn-destructive:hover:not(:disabled) {
+  background-color: #c0354a;
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 0px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 2px solid transparent;
+}
+
+.tag-accent {
+  background-color: rgba(78, 118, 172, 0.15);
+  color: var(--color-accent);
+  border: 2px solid var(--color-accent);
+}
+
+.tag-accent-2 {
+  background-color: rgba(225, 68, 89, 0.15);
+  color: var(--color-accent-2);
+  border: 2px solid var(--color-accent-2);
+}
+
+.tag-neutral {
+  background-color: rgba(32, 30, 29, 0.1);
+  color: var(--color-text);
+  border: 2px solid #ccc;
+}
+
+.tag-outline {
+  background-color: transparent;
+  color: var(--color-text);
+  border: 2px solid #ccc;
+}
+
+.tag-info {
+  background-color: rgba(92, 147, 201, 0.15);
+  color: var(--tf-info);
+  border: 2px solid var(--tf-info);
+}
+
+.tag-purple {
+  background-color: rgba(156, 92, 144, 0.15);
+  color: var(--tf-purple);
+  border: 2px solid var(--tf-purple);
+}
+
+.tag-teal {
+  background-color: rgba(59, 156, 147, 0.15);
+  color: var(--tf-teal);
+  border: 2px solid var(--tf-teal);
+}
+
+.tag-success {
+  background-color: rgba(116, 143, 43, 0.15);
+  color: var(--tf-success);
+  border: 2px solid var(--tf-success);
+}
+
+.tag-warning {
+  background-color: rgba(245, 130, 10, 0.15);
+  color: var(--tf-warning);
+  border: 2px solid var(--tf-warning);
+}
+
+.tag-citron {
+  background-color: rgba(185, 146, 74, 0.15);
+  color: var(--tf-citron);
+  border: 2px solid var(--tf-citron);
+}
+
+/* Priority tags — specific styling per level */
+.priority-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.priority-high {
+  background-color: rgba(225, 68, 89, 0.15);
+  color: var(--color-accent-2);
+  border: 2px solid var(--color-accent-2);
+}
+
+.priority-medium {
+  background-color: rgba(245, 130, 10, 0.15);
+  color: var(--tf-warning);
+  border: 2px solid var(--tf-warning);
+}
+
+.priority-low {
+  background-color: rgba(32, 30, 29, 0.1);
+  color: var(--color-text);
+  border: 2px solid #ccc;
+}
+
+/* Form fields */
+label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="date"],
+textarea,
+select {
+  width: 100%;
+  padding: 12px 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  background-color: var(--color-surface);
+  border: 2px solid #ccc;
+  color: var(--color-text);
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="date"]:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border: 2px solid var(--color-accent);
+  background-color: white;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-group {
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Cards */
+.card {
+  background-color: var(--color-surface);
+  border: 2px solid #ccc;
+  padding: 24px;
+}
+
+.card-header {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 16px;
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.card-footer {
+  padding-top: 16px;
+  border-top: 2px solid #ccc;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+/* Dividers */
+.divider {
+  border: 0;
+  height: 2px;
+  background-color: #ccc;
+  margin: 16px 0;
+}
+
+hr {
+  border: 0;
+  height: 2px;
+  background-color: #ccc;
+}
+
+/* Checkbox styling */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: var(--tf-success);
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--tf-success);
+}
+
+.checkbox-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-label.completed {
+  text-decoration: line-through;
+  color: #999;
+}
+
+/* Utility classes */
+.flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.justify-end {
+  justify-content: flex-end;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

@@ -2,13 +2,15 @@
   <h2>Login</h2>
   <div *ngIf="justRegistered()" class="success">Registered — please log in.</div>
   <div *ngIf="error()" class="error">{{ error() }}</div>
-  <div>
-    <label>Email <input [ngModel]="email()" (ngModelChange)="email.set($event)" /></label>
+  <div class="form-group">
+    <label for="email">Email</label>
+    <input id="email" type="email" [ngModel]="email()" (ngModelChange)="email.set($event)" />
   </div>
-  <div>
-    <label>Password <input type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" /></label>
+  <div class="form-group">
+    <label for="password">Password</label>
+    <input id="password" type="password" [ngModel]="password()" (ngModelChange)="password.set($event)" />
   </div>
-  <div>
-    <button (click)="submit()" [disabled]="loading()">Login</button>
+  <div class="form-group">
+    <button class="btn btn-primary" (click)="submit()" [disabled]="loading()">Login</button>
   </div>
 </div>

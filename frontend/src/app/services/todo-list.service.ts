@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, RenameItemCommand, RenameListCommand, CreateTodoListCommand } from '../models/todo';
+import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, RenameItemCommand, RenameListCommand, CreateTodoListCommand, PriorityLevel, TodoItemCategory, SetPriorityRequest, SetDueDateRequest, SetCategoryRequest } from '../models/todo';
 import { runtimeConfig } from '../runtime-config';
 
 @Injectable({ providedIn: 'root' })
@@ -42,6 +42,21 @@ export class TodoListService {
 
   reopenItem(listId: number, itemId: number): Observable<void> {
     return this.http.post<void>(`${this.base}/${listId}/items/${itemId}/reopen`, null);
+  }
+
+  setPriority(listId: number, itemId: number, priority: PriorityLevel): Observable<void> {
+    const body: SetPriorityRequest = { priority };
+    return this.http.patch<void>(`${this.base}/${listId}/items/${itemId}/priority`, body);
+  }
+
+  setDueDate(listId: number, itemId: number, dueDate: string | null): Observable<void> {
+    const body: SetDueDateRequest = { dueDate };
+    return this.http.patch<void>(`${this.base}/${listId}/items/${itemId}/due-date`, body);
+  }
+
+  setCategory(listId: number, itemId: number, category: TodoItemCategory): Observable<void> {
+    const body: SetCategoryRequest = { category };
+    return this.http.patch<void>(`${this.base}/${listId}/items/${itemId}/category`, body);
   }
 
   renameList(listId: number, newName: string): Observable<void> {
