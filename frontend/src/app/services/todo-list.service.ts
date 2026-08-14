@@ -1,16 +1,22 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, RenameItemCommand, RenameListCommand } from '../models/todo';
-import { environment } from '../../environments/environment';
+import { TodoListDto, TodoListWithItemsDto, AddTodoItemCommand, TodoItemDto, RenameItemCommand, RenameListCommand, CreateTodoListCommand } from '../models/todo';
+import { runtimeConfig } from '../runtime-config';
 
 @Injectable({ providedIn: 'root' })
 export class TodoListService {
   private http = inject(HttpClient);
-  private base = `${environment.apiBaseUrl}/api/v1/todolists`;
+  // Getter, not a cached field — see AuthService's identical comment.
+  private get base() { return `${runtimeConfig.apiBaseUrl}/api/v1/todolists`; }
 
   getLists(): Observable<TodoListDto[]> {
     return this.http.get<TodoListDto[]>(this.base);
+  }
+
+  createList(name: string): Observable<void> {
+    const body: CreateTodoListCommand = { name };
+    return this.http.post<void>(this.base, body);
   }
 
   getList(id: number): Observable<TodoListWithItemsDto> {
