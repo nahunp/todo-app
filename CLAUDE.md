@@ -255,8 +255,38 @@ non-owner can't tell a resource exists at all (OWASP-aligned).
 
 Live on Azure (free tier) — see README.md's "Deployment" section for
 resource names, redeploy commands, and the one real known limitation
-(serverless Azure SQL cold-start). Two gotchas worth knowing before
-touching either service again:
+(serverless Azure SQL cold-start). Deployment on push to `master` is
+automated (`backend-deploy.yml` / `frontend-deploy.yml`) — gotchas worth
+knowing before touching either workflow again:
+
+- **GitHub's OIDC subject claim isn't always `repo:<org>/<repo>:...`.**
+  This repo issues it as `repo:<login>@<numeric-id>/<repo>@<numeric-id>:...`
+  instead — found out by an Azure federated-credential login failing
+  (`AADSTS700213`) against a credential scoped to the plain-name form. The
+  error itself doesn't say what subject was expected, only what was
+  presented — read a failed run's own "Federated token details" log line
+  for the actual value rather than assuming the commonly-documented
+  format.
+- **A job's `environment:` key changes its OIDC subject claim shape** —
+  `repo:<org>/<repo>:environment:<name>` instead of
+  `repo:<org>/<repo>:ref:<ref>`. `backend-deploy.yml` deliberately has no
+  `environment:` for this reason; adding one back would break its Azure
+  login the same way it did the first time.
+- **This App Service has SCM Basic Auth publishing credentials disabled**
+  (Azure's secure-by-default setting) — a publish-profile-based deploy
+  (`azure/webapps-deploy` + `publish-profile`) doesn't work here even if
+  temporarily re-enabled, for reasons that didn't reproduce with a plain
+  `az webapp deploy`. That's why the workflow uses OIDC (`azure/login`)
+  + `az webapp deploy` instead of the more commonly documented publish
+  profile action — and why it stays that way even though it'd technically
+  work again with Basic Auth back on: OIDC needs no stored deploy
+  credential at all.
+- **`az` commands with a leading-slash resource ID argument get mangled
+  by Git Bash on Windows** (e.g. `--scope "/subscriptions/..."` silently
+  becomes a Windows path) — prefix with `MSYS_NO_PATHCONV=1` when running
+  `az` from this repo's Bash tool with an ID-shaped argument.
+
+Two more gotchas, from the app code itself:
 
 - **Frontend backend-URL config is runtime, not build-time.** Don't add
   back an `environment.ts`/`environment.prod.ts` + `fileReplacements`
