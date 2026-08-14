@@ -1,0 +1,41 @@
+import { Component, signal, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { AuthService } from '../services/auth.service';
+
+@Component({
+  selector: 'app-login',
+  standalone: true,
+  imports: [CommonModule, FormsModule],
+  templateUrl: './login.html',
+  styleUrls: ['./login.css']
+})
+export class LoginComponent {
+  private auth = inject(AuthService);
+  private router = inject(Router);
+
+  username = signal('');
+  password = signal('');
+  error = signal('');
+  loading = signal(false);
+
+  submit() {
+    this.error.set('');
+    if (!this.username() || !this.password()) {
+      this.error.set('username and password required');
+      return;
+    }
+    this.loading.set(true);
+    this.auth.login(this.username(), this.password()).subscribe({
+      next: () => {
+        this.loading.set(false);
+        this.router.navigate(['/lists']);
+      },
+      error: (err) => {
+        this.loading.set(false);
+        this.error.set(err?.message ?? String(err));
+      }
+    });
+  }
+}
