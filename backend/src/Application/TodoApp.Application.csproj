@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>TodoApp.Application</RootNamespace>
+  </PropertyGroup>
+
+  <!--
+    MediatR pinned to the 12.x line on purpose: v13+ moved to a commercial
+    license (Lucky Penny Software, mid-2025). 12.4.1 is the last release
+    still under the original Apache 2.0 license, and it has everything this
+    project needs. Don't bump the major version without checking the
+    license again first.
+  -->
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="FluentValidation" Version="11.9.2" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.10" />
+    <!--
+      8.0.2, not 8.0.1: EF Core 8.0.10 pulls in Microsoft.Extensions.Caching.Memory
+      8.0.1, which itself requires DependencyInjection.Abstractions >= 8.0.2.
+      Pinning below that is a package downgrade, which NuGet treats as a
+      restore error, not just a warning.
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\TodoApp.Domain.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>TodoApp.WebApi</RootNamespace>
+    <!--
+      Same UserSecretsId as TodoApp.Infrastructure, deliberately — both read
+      from the same local secrets.json, so the connection string only has
+      to be set once. WebApplicationBuilder automatically loads user
+      secrets for this project's own UserSecretsId when
+      ASPNETCORE_ENVIRONMENT is Development.
+    -->
+    <UserSecretsId>97b21163-3f03-480d-81bc-15353c28426e</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+    <!-- Validates incoming Bearer tokens. Infrastructure's TokenService
+         only ever issues them, with its own reference to
+         System.IdentityModel.Tokens.Jwt for that — this is the other half. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\TodoApp.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\TodoApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

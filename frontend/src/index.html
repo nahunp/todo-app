@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Frontend</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+  <!--
+    Plain script, not a JS module — loads and runs before Angular's own
+    bundle, setting a true window global. See runtime-config.ts for why:
+    a shared mutable object exported from a JS module doesn't reliably
+    stay a *single* shared instance across Angular's lazily-loaded route
+    chunks with this build (confirmed live — a fetch-and-mutate version of
+    this worked for the eagerly-bundled AuthService but not the lazy
+    TodoListService, which had its own separate, never-updated copy of
+    the same "shared" object). window is a true runtime global, not
+    module-scoped, so every chunk reads the exact same value.
+  -->
+  <script src="config.js"></script>
+  <!-- async/defer: doesn't block first paint, and doesn't need to run
+       before Angular's bundle the way config.js does — RegisterComponent
+       only touches the `turnstile` global once the user actually reaches
+       the register screen, well after this has had time to load. -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <app-root></app-root>
+</body>
+</html>

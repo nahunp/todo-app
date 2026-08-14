@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>TodoApp.Infrastructure</RootNamespace>
+    <!--
+      Ties this project to a secrets.json file that lives OUTSIDE the repo
+      entirely (%APPDATA%\Microsoft\UserSecrets\<id>\secrets.json on
+      Windows) — the connection string (and any future real secret) is set
+      there via Visual Studio's "Manage User Secrets", never hardcoded in
+      source, never committable by accident. This GUID is just a lookup
+      key, not a secret itself — safe to commit.
+    -->
+    <UserSecretsId>97b21163-3f03-480d-81bc-15353c28426e</UserSecretsId>
+  </PropertyGroup>
+
+  <!--
+    This project targets plain Microsoft.NET.Sdk, not .Sdk.Web, so it
+    doesn't pull in the ASP.NET Core shared framework automatically the way
+    WebApi does. AddIdentityCore's own package resolves fine without this,
+    but AddDefaultTokenProviders() (used for password reset/email
+    confirmation tokens down the line) lives in the shared framework
+    itself, not a standalone NuGet package - this is the standard,
+    documented fix for "Identity in a class library" specifically.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <!-- Identity's own EF Core store (AspNetUsers, AspNetRoles, etc.) -
+         ApplicationDbContext becomes an IdentityDbContext<ApplicationUser>. -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
+    <!-- AddIdentityCore/UserManager/AddDefaultTokenProviders themselves -
+         this project targets plain Microsoft.NET.Sdk, not .Sdk.Web, so it
+         doesn't get the ASP.NET Core shared framework (and these types)
+         for free the way WebApi does. -->
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.10" />
+    <!-- JWT creation (JwtSecurityTokenHandler) for TokenService. Validating
+         incoming tokens is a separate package, referenced by WebApi only -
+         Infrastructure only ever issues tokens, never reads one back. -->
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
+    <!--
+      Design + Tools: both needed for migrations tooling (Add-Migration /
+      Update-Database in Package Manager Console, or `dotnet ef` on the
+      CLI). PrivateAssets="all" — build-time only, never shipped or
+      referenced by anything that depends on this project.
+    -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <!-- 8.0.2, not a lower 8.0.x, everywhere below: same package-downgrade
+         issue as TodoApp.Application — EF Core's own dependency chain
+         wants >= 8.0.2. -->
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Application\TodoApp.Application.csproj" />
+  </ItemGroup>
+
+</Project>

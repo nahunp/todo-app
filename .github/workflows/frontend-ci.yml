@@ -1,0 +1,51 @@
+name: Frontend CI
+
+# Path-filtered to frontend/** on purpose — a backend-only change shouldn't
+# trigger an npm install + Angular build, same reasoning as backend-ci.yml
+# staying scoped to the backend/ tree. Mirrors that workflow's trigger
+# shape otherwise: every push (fast feedback), every PR targeting the
+# three protected branches (what branch protection gates on).
+on:
+  push:
+    branches: ["**"]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+  pull_request:
+    branches: [development, release, master]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/frontend-ci.yml"
+
+jobs:
+  build-and-test:
+    name: build-and-test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+      # `ng test` here runs on Vitest (Angular CLI's @angular/build:unit-test
+      # builder, scaffolded default as of Angular 22), not Karma — it runs
+      # once and exits on its own, no --watch=false/--browsers flags needed.
+      # Verified locally before assuming it: a plain `npm test` already
+      # completes cleanly without hanging.
+      - name: Test
+        working-directory: frontend
+        run: npm test
