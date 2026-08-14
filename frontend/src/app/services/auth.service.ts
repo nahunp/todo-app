@@ -1,7 +1,7 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { tap } from 'rxjs/operators';
-import { environment } from '../../environments/environment';
+import { runtimeConfig } from '../runtime-config';
 
 export interface AuthResponse {
   accessToken?: string;
@@ -12,7 +12,10 @@ export interface AuthResponse {
 export class AuthService {
   private readonly storageKey = 'todoapp_token';
   private http = inject(HttpClient);
-  private base = `${environment.apiBaseUrl}/api/v1/auth`;
+  // Getter, not a cached field — runtimeConfig.apiBaseUrl is resolved by
+  // main.ts before bootstrap, but reading it lazily here removes any
+  // dependency on construction order being right.
+  private get base() { return `${runtimeConfig.apiBaseUrl}/api/v1/auth`; }
 
   // Simple reactive state for whether a token exists
   isAuthenticated = signal<boolean>(!!this.getToken());

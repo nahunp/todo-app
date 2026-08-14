@@ -1,20 +1,10 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { TodoListService } from '../services/todo-list.service';
-
-// Typed models matching the API contract
-export interface CreateTodoListCommand {
-  name?: string | null;
-}
-
-export interface TodoListDto {
-  id: number; // backend uses int for Id
-  name?: string | null;
-}
+import { TodoListDto } from '../models/todo';
 
 @Component({
   selector: 'app-todo-list',
@@ -24,7 +14,7 @@ export interface TodoListDto {
   styleUrls: ['./todo-list.css'],
 })
 export class TodoList implements OnInit {
-  private http = inject(HttpClient);
+  private service = inject(TodoListService);
 
   todoLists = signal<TodoListDto[]>([]);
   loading = signal(true);
@@ -40,8 +30,7 @@ export class TodoList implements OnInit {
   load() {
     this.loading.set(true);
     this.error.set('');
-    // HttpClient returns typed responses; proxy (or base URL) will forward to backend
-    this.http.get<TodoListDto[]>('/api/v1/todolists')
+    this.service.getLists()
       .pipe(
         catchError((err) => {
           this.error.set(err?.message ?? String(err));
@@ -54,13 +43,9 @@ export class TodoList implements OnInit {
       });
   }
 
-  // inject service for list operations
-  private service = inject(TodoListService);
-
   create(name: string) {
     if (!name) return;
-    const body: CreateTodoListCommand = { name };
-    this.http.post<void>('/api/v1/todolists', body)
+    this.service.createList(name)
       .pipe(
         catchError((err) => {
           this.error.set(err?.message ?? String(err));
