@@ -14,10 +14,9 @@ describe('App', () => {
     expect(app).toBeTruthy();
   });
 
-  it('should render title', async () => {
-    const fixture = TestBed.createComponent(App);
-    await fixture.whenStable();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, frontend');
-  });
+  // The old 'should render title' test asserted on the ng-new placeholder's
+  // <h1>Hello, frontend</h1>, which app.html no longer has — it's just
+  // <router-outlet /> now (see issue #30). Removed rather than rewritten;
+  // routed content is exercised by TodoList/TodoListDetail's own specs
+  // (once those exist), not App's.
 });
