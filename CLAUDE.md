@@ -200,14 +200,38 @@ non-owner can't tell a resource exists at all (OWASP-aligned).
   re-verify the file's content from a different tool before assuming the
   app or the config system is broken.
 
+## Deployed
+
+Live on Azure (free tier) — see README.md's "Deployment" section for
+resource names, redeploy commands, and the one real known limitation
+(serverless Azure SQL cold-start). Two gotchas worth knowing before
+touching either service again:
+
+- **Frontend backend-URL config is runtime, not build-time.** Don't add
+  back an `environment.ts`/`environment.prod.ts` + `fileReplacements`
+  setup — that was tried first and silently broke `TodoListService`'s
+  calls (misdiagnosed at the time as an esbuild lazy-chunk bug; the real
+  cause was unrelated — see `runtime-config.ts`'s doc comment for the
+  full story). `public/config.js` sets `window.__appConfig` before
+  Angular's bundle loads; that's the one and only place the deployed
+  backend URL lives outside source.
+- **A frontend service method existing doesn't mean a component uses
+  it.** `todo-list.ts`'s `load()`/`create()` called `HttpClient` directly
+  with hardcoded paths for a long time after `TodoListService` already
+  had the right methods — easy to miss since it still worked locally
+  (relative paths resolve fine against `ng serve`'s own proxy). Only
+  surfaced once frontend and backend were genuinely different origins.
+  If a service method exists, grep for who's actually calling it before
+  assuming a bug is elsewhere.
+
 ## Open / not yet designed
 
 - **Refresh tokens** — access tokens are 60 minutes, no refresh flow yet.
   Fine for now (single desktop client, short dev sessions); revisit before
   Android/iOS clients need to stay logged in across app restarts.
-- **Not deployed anywhere.** Local SQL Server Express + `dotnet run` +
-  `ng serve` only. README has said "deploying to Azure eventually" since
-  day one; still eventually.
+- **No CI/CD for deployment** — both sides are deployed by hand (see
+  README.md). Worth automating once changes are frequent enough that
+  manual redeploys get tedious.
 - **List CRUD is complete** as of this writing (create/rename/delete a
   list; add/rename/remove/complete/reopen an item), now with per-user
   ownership — if either stops being true, update this line, don't leave

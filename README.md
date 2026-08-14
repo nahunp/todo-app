@@ -1,6 +1,8 @@
 # TodoApp
 
-A Todo app built step by step to learn Clean Architecture, SOLID principles, and design patterns — .NET (backend) + Angular (frontend) + SQL Server, deploying to Azure eventually.
+A Todo app built step by step to learn Clean Architecture, SOLID principles, and design patterns — .NET (backend) + Angular (frontend) + SQL Server, deployed to Azure.
+
+**Live**: [zealous-meadow-0c73a9610.7.azurestaticapps.net](https://zealous-meadow-0c73a9610.7.azurestaticapps.net) (frontend) · [todoapp-api-us3zbx.azurewebsites.net](https://todoapp-api-us3zbx.azurewebsites.net) (backend API)
 
 **Backend** (`backend-ci.yml`, triggers on `backend/**`):
 
@@ -68,3 +70,68 @@ one-way promotion targets, so requiring the source branch to already contain
 the target's latest commit just deadlocks every promotion after the first
 (learned that one the hard way). `teflon` has none of these restrictions, on
 purpose.
+
+## Deployment
+
+All Azure, all free tier, resource group `rg-todoapp` (Central US — East US
+and West US 2 both rejected new SQL server creation on this subscription at
+setup time; not a resource-group-specific constraint, just try another
+region if it happens again):
+
+| Resource | Name | Purpose |
+|---|---|---|
+| App Service (Linux, F1 free) | `todoapp-api-us3zbx` | Backend API |
+| Azure SQL (free offer, serverless) | `todoapp-sql-aeyls0` / `TodoAppDb` | Database |
+| Static Web App (free) | `todoapp-web-vawdeh` | Frontend |
+
+No CI/CD pipeline for deployment yet — both sides are deployed by hand from
+a local build. To redeploy:
+
+**Backend**:
+```powershell
+cd backend
+dotnet publish src/WebApi/TodoApp.WebApi.csproj -c Release -o publish-out
+Compress-Archive -Path publish-out/* -DestinationPath webapi.zip -Force
+az webapp deploy --resource-group rg-todoapp --name todoapp-api-us3zbx --src-path webapi.zip --type zip
+```
+Migrations don't run automatically in production (see `Program.cs`'s
+comment on why) — apply them explicitly, pointed at the Azure connection
+string via an environment variable override (works because
+`ApplicationDbContextFactory` checks environment variables after User
+Secrets):
+```powershell
+$env:ConnectionStrings__DefaultConnection = "<the Azure SQL connection string>"
+cd backend
+dotnet ef database update --project src/Infrastructure/TodoApp.Infrastructure.csproj --startup-project src/Infrastructure/TodoApp.Infrastructure.csproj
+Remove-Item Env:\ConnectionStrings__DefaultConnection
+```
+(Running `dotnet ef` from the CLI, not Package Manager Console, and using
+Infrastructure as both `--project` and `--startup-project` — WebApi's own
+`Design`/`Tools` references are `PrivateAssets="all"` in Infrastructure's
+`.csproj`, so they don't flow transitively to WebApi; using WebApi as
+`--startup-project` fails with "doesn't reference
+Microsoft.EntityFrameworkCore.Design".)
+
+**Frontend**: `frontend/public/config.js` carries the backend's URL as a
+runtime `window.__appConfig` global (see `runtime-config.ts`'s doc comment
+for why this isn't a build-time `environment.ts` — that approach was tried
+first and quietly broke `TodoListService`'s calls). The committed
+`config.js` is the local-dev default (empty `apiBaseUrl`); redeploying
+means overwriting that one file in the build output before pushing, not
+committing a different value:
+```powershell
+cd frontend
+npm run build -- --configuration production
+'window.__appConfig = { apiBaseUrl: "https://todoapp-api-us3zbx.azurewebsites.net" };' | Set-Content dist/frontend/browser/config.js -NoNewline
+npx @azure/static-web-apps-cli deploy --app-location dist/frontend/browser --deployment-token <token> --env production
+```
+The deployment token is in the Static Web App's Azure Portal blade (or
+`az staticwebapp secrets list`) — not committed anywhere.
+
+**Known limitation**: Azure SQL's free-tier database is serverless and
+auto-pauses after a period of no activity, taking tens of seconds to
+resume. The backend retries transient failures during that resume
+(`EnableRetryOnFailure()`), but a request landing during a genuinely cold
+resume can still be slow, or in rare cases time out outright — acceptable
+for a free-tier learning-project deployment, not something you'd want on
+anything real users depend on staying responsive.
