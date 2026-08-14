@@ -16,8 +16,33 @@
     <UserSecretsId>97b21163-3f03-480d-81bc-15353c28426e</UserSecretsId>
   </PropertyGroup>
 
+  <!--
+    This project targets plain Microsoft.NET.Sdk, not .Sdk.Web, so it
+    doesn't pull in the ASP.NET Core shared framework automatically the way
+    WebApi does. AddIdentityCore's own package resolves fine without this,
+    but AddDefaultTokenProviders() (used for password reset/email
+    confirmation tokens down the line) lives in the shared framework
+    itself, not a standalone NuGet package - this is the standard,
+    documented fix for "Identity in a class library" specifically.
+  -->
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+    <!-- Identity's own EF Core store (AspNetUsers, AspNetRoles, etc.) -
+         ApplicationDbContext becomes an IdentityDbContext<ApplicationUser>. -->
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
+    <!-- AddIdentityCore/UserManager/AddDefaultTokenProviders themselves -
+         this project targets plain Microsoft.NET.Sdk, not .Sdk.Web, so it
+         doesn't get the ASP.NET Core shared framework (and these types)
+         for free the way WebApi does. -->
+    <PackageReference Include="Microsoft.Extensions.Identity.Core" Version="8.0.10" />
+    <!-- JWT creation (JwtSecurityTokenHandler) for TokenService. Validating
+         incoming tokens is a separate package, referenced by WebApi only -
+         Infrastructure only ever issues tokens, never reads one back. -->
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
     <!--
       Design + Tools: both needed for migrations tooling (Add-Migration /
       Update-Database in Package Manager Console, or `dotnet ef` on the

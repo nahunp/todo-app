@@ -1,8 +1,14 @@
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TodoApp.Application;
+using TodoApp.Application.Common.Interfaces;
 using TodoApp.Infrastructure;
 using TodoApp.Infrastructure.Persistence;
+using TodoApp.WebApi.Auth;
 using TodoApp.WebApi.Common;
+using TodoApp.WebApi.Identity;
 using TodoApp.WebApi.TodoLists;
 
 const string FrontendDevCorsPolicy = "FrontendDev";
@@ -18,7 +24,32 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Lets Swagger UI's "Authorize" button attach a Bearer token to every
+    // request after logging in via /api/v1/auth/login — otherwise every
+    // manual test through the UI would need a separate tool just to add
+    // the header.
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Paste just the token — Swagger adds the \"Bearer \" prefix itself.",
+    });
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference { Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme, Id = "Bearer" },
+            },
+            Array.Empty<string>()
+        },
+    });
+});
 
 // Angular's dev server (`ng serve`) runs on its own origin (localhost:4200)
 // — different port from this API (5080), so the browser blocks requests
@@ -33,6 +64,37 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader()
               .AllowAnyMethod());
 });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+var jwtSigningKey = builder.Configuration["Jwt:SigningKey"]
+    ?? throw new InvalidOperationException(
+        "Jwt:SigningKey is not configured. Set it in User Secrets (same secrets.json as the connection string).");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        // See CurrentUserService's doc comment — without this, "sub" gets
+        // silently rewritten to a long ClaimTypes URI and UserId lookups
+        // quietly return null.
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+            ValidateLifetime = true,
+            // Default is 5 minutes; tokens here are already short-lived
+            // (60 min, see TokenService), no need for a generous allowance.
+            ClockSkew = TimeSpan.FromMinutes(1),
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -57,6 +119,10 @@ if (app.Environment.IsDevelopment())
 // Must come before endpoint mapping so it can catch everything downstream.
 app.UseExceptionHandler();
 
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapAuthEndpoints();
 app.MapTodoListEndpoints();
 
 app.Run();

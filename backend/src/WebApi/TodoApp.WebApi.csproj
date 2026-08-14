@@ -17,6 +17,10 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
+    <!-- Validates incoming Bearer tokens. Infrastructure's TokenService
+         only ever issues them, with its own reference to
+         System.IdentityModel.Tokens.Jwt for that — this is the other half. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
   </ItemGroup>
 
   <ItemGroup>

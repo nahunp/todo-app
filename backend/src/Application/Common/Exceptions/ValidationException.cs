@@ -24,5 +24,17 @@ public class ValidationException : Exception
             .ToDictionary(failureGroup => failureGroup.Key, failureGroup => failureGroup.ToArray());
     }
 
+    /// <summary>
+    /// For rejections that aren't FluentValidation but are still "the
+    /// request was well-formed, here's specifically what's wrong with it"
+    /// — e.g. Identity rejecting a registration (duplicate email, weak
+    /// password). Same shape, same 400 handling, no FluentValidation
+    /// dependency for the caller.
+    /// </summary>
+    public ValidationException(IDictionary<string, string[]> errors) : this()
+    {
+        Errors = errors;
+    }
+
     public IDictionary<string, string[]> Errors { get; }
 }

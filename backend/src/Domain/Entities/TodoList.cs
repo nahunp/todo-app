@@ -31,6 +31,17 @@ public class TodoList : BaseAuditableEntity
 
     private readonly List<TodoItem> _items = new();
 
+    /// <summary>
+    /// The Identity user id (string, matching IdentityUser.Id) that owns
+    /// this list. Set once at construction, never changed — lists don't
+    /// transfer ownership. Not validated the same way as Name: an empty
+    /// OwnerId means the *caller* (Application layer) has a bug (it should
+    /// always come from an authenticated ICurrentUserService, never
+    /// straight from user input), not a business rule a real user could
+    /// trip — hence ArgumentException, not a DomainException.
+    /// </summary>
+    public string OwnerId { get; private set; } = string.Empty;
+
     public string Name { get; private set; } = string.Empty;
 
     public IReadOnlyCollection<TodoItem> Items => _items.AsReadOnly();
@@ -41,8 +52,12 @@ public class TodoList : BaseAuditableEntity
     {
     }
 
-    public TodoList(string name)
+    public TodoList(string ownerId, string name)
     {
+        if (string.IsNullOrWhiteSpace(ownerId))
+            throw new ArgumentException("OwnerId cannot be empty.", nameof(ownerId));
+
+        OwnerId = ownerId;
         SetName(name);
     }
 
