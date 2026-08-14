@@ -5,6 +5,16 @@ backend (`backend/`) is Claude's territory — Copilot shouldn't need to touch
 it, and shouldn't guess at its internals. Everything Copilot needs to know
 about the backend is the API contract below.
 
+## Design system
+
+Brand standards ("Cloud Dancer") are checked in at
+[`docs/design/brand-standards.pdf`](../docs/design/brand-standards.pdf) —
+color tokens, typography (Archivo), spacing/radius rules, and component
+specs (buttons, tags, cards, forms, nav), plus a literal step-by-step
+Angular wiring guide in its own section. Note it says `src/styles.scss`
+in one spot — this project has **plain CSS**, so that's `src/styles.css`
+here, not a typo to preserve.
+
 ## The API contract
 
 The backend's OpenAPI spec is checked in at [`docs/api/openapi.json`](../docs/api/openapi.json)
