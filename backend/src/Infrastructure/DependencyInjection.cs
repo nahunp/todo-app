@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using TodoApp.Application.Common.Interfaces;
+using TodoApp.Infrastructure.Captcha;
 using TodoApp.Infrastructure.Identity;
 using TodoApp.Infrastructure.Persistence;
 
@@ -43,12 +44,32 @@ public static class DependencyInjection
         // over which one's the default (a common, confusing source of "API
         // call gets a 302 redirect instead of a 401"). AddIdentityCore
         // avoids that whole class of problem by not registering it at all.
-        services.AddIdentityCore<ApplicationUser>()
+        services.AddIdentityCore<ApplicationUser>(options =>
+        {
+            // ASP.NET Core Identity's own defaults, made explicit rather
+            // than left implicit — found worth doing once the frontend
+            // needed to show a live password-requirements checklist
+            // (GET /api/v1/auth/password-policy exposes exactly this
+            // object back out) and "whatever Identity defaults to" wasn't
+            // a good enough answer to build that against.
+            options.Password.RequiredLength = 6;
+            options.Password.RequireDigit = true;
+            options.Password.RequireLowercase = true;
+            options.Password.RequireUppercase = true;
+            options.Password.RequireNonAlphanumeric = true;
+            options.Password.RequiredUniqueChars = 1;
+        })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
         services.AddScoped<IIdentityService, IdentityService>();
         services.AddScoped<ITokenService, TokenService>();
+
+        // AddHttpClient<TInterface, TImplementation>, not a bare
+        // `new HttpClient()` inside the service — pooled/reused connections
+        // via IHttpClientFactory, the standard fix for the socket-exhaustion
+        // problem `new HttpClient()` per-call/per-instance causes.
+        services.AddHttpClient<ICaptchaService, TurnstileCaptchaService>();
 
         return services;
     }
