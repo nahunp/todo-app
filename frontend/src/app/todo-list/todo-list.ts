@@ -37,14 +37,9 @@ export class TodoList implements OnInit {
     this.loading.set(true);
     this.error.set('');
     // HttpClient returns typed responses; proxy (or base URL) will forward to backend
-    this.http.get<TodoListDto[]>('/api/todolists')
+    this.http.get<TodoListDto[]>('/api/v1/todolists')
       .pipe(
         catchError((err) => {
-          if (err?.status === 404) {
-            this.todoLists.set([]);
-            this.error.set('GET /api/todolists not implemented on backend (404).');
-            return of([] as TodoListDto[]);
-          }
           this.error.set(err?.message ?? String(err));
           return of([] as TodoListDto[]);
         })
@@ -58,7 +53,7 @@ export class TodoList implements OnInit {
   create(name: string) {
     if (!name) return;
     const body: CreateTodoListCommand = { name };
-    this.http.post<void>('/api/todolists', body)
+    this.http.post<void>('/api/v1/todolists', body)
       .pipe(
         catchError((err) => {
           this.error.set(err?.message ?? String(err));
