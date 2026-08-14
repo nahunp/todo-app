@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { TodoListService } from '../services/todo-list.service';
 
 // Typed models matching the API contract
 export interface CreateTodoListCommand {
@@ -24,10 +25,14 @@ export interface TodoListDto {
 })
 export class TodoList implements OnInit {
   private http = inject(HttpClient);
+  private service = inject(TodoListService);
 
   todoLists = signal<TodoListDto[]>([]);
   loading = signal(true);
   error = signal('');
+
+  // UI state for delete confirmation
+  pendingDeleteListId = signal<number | null>(null);
 
   ngOnInit(): void {
     this.load();
@@ -61,5 +66,20 @@ export class TodoList implements OnInit {
         })
       )
       .subscribe(() => this.load());
+  }
+
+  startDeleteList(id: number) {
+    this.pendingDeleteListId.set(id);
+  }
+
+  cancelDeleteList() {
+    this.pendingDeleteListId.set(null);
+  }
+
+  confirmDeleteList(id: number) {
+    this.service.deleteList(id).subscribe(() => {
+      this.pendingDeleteListId.set(null);
+      this.load();
+    }, err => this.error.set(err?.message ?? String(err)));
   }
 }
