@@ -15,6 +15,13 @@ file yet, that's a sign to ask for the endpoint rather than guess its shape.
 
 Local dev API base URL: `http://localhost:5080` (see `backend/src/WebApi/Properties/launchSettings.json`).
 
+**All routes are versioned** — `/api/v1/todolists/...`, not `/api/todolists/...`.
+Introduced once a second and third client (Android, iOS) were on the
+roadmap: versioning from the start means a future breaking change adds
+`/api/v2/...` alongside `/v1` instead of forcing every client to update
+in lockstep. Don't drop the `/v1` segment, and don't assume it'll always
+say `v1` — check the actual path in `docs/api/openapi.json`.
+
 ## Conventions
 
 - **Standalone components**, no `NgModule`s — matches modern Angular CLI defaults.
