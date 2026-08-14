@@ -2,6 +2,8 @@
 
 A Todo app built step by step to learn Clean Architecture, SOLID principles, and design patterns — .NET (backend) + Angular (frontend) + SQL Server, deployed to Azure.
 
+**Purpose**: this is a personal, hands-on project for practicing how to design, build, and deploy an enterprise-grade, cloud-ready application end to end — architecture, auth, CI/CD, the works — using AI coding agents (Claude and GitHub Copilot) as the actual developers, not just autocomplete. It's not a company or a commercial product; see the in-app Terms of Service for the specifics.
+
 **Live**: [zealous-meadow-0c73a9610.7.azurestaticapps.net](https://zealous-meadow-0c73a9610.7.azurestaticapps.net) (frontend) · [todoapp-api-us3zbx.azurewebsites.net](https://todoapp-api-us3zbx.azurewebsites.net) (backend API)
 
 **Backend** (`backend-ci.yml`, triggers on `backend/**`):
@@ -161,3 +163,12 @@ resume. The backend retries transient failures during that resume
 resume can still be slow, or in rare cases time out outright — acceptable
 for a free-tier learning-project deployment, not something you'd want on
 anything real users depend on staying responsive.
+
+## Releases
+
+See [Releases](https://github.com/nahunp/todo-app/releases) for versioned
+snapshots and what changed in each. v1.0.0 is the current release.
+
+## License
+
+[MIT](LICENSE) — use, fork, or learn from any of this freely.
