@@ -23,7 +23,11 @@ public static class TodoListEndpoints
 {
     public static void MapTodoListEndpoints(this IEndpointRouteBuilder app)
     {
-        var group = app.MapGroup("/api/todolists").WithTags("TodoLists");
+        // v1, from the start — right now there's exactly one client (the
+        // Angular app) depending on this shape. Once mobile clients exist
+        // too, a breaking change means coordinating three teams instead of
+        // rewriting one call site. Cheap now, expensive later.
+        var group = app.MapGroup("/api/v1/todolists").WithTags("TodoLists");
 
         // ISender, not IMediator — endpoints only ever Send commands/queries
         // here, never Publish notifications directly.
@@ -49,7 +53,7 @@ public static class TodoListEndpoints
         group.MapPost("/", async (CreateTodoListCommand command, ISender sender, CancellationToken cancellationToken) =>
         {
             var id = await sender.Send(command, cancellationToken);
-            return Results.Created($"/api/todolists/{id}", new { id });
+            return Results.Created($"/api/v1/todolists/{id}", new { id });
         })
         .WithName("CreateTodoList")
         .WithSummary("Creates a new todo list.")
@@ -70,7 +74,7 @@ public static class TodoListEndpoints
         group.MapPost("/{id:int}/items", async (int id, AddTodoItemRequest body, ISender sender, CancellationToken cancellationToken) =>
         {
             var itemId = await sender.Send(new AddTodoItemCommand(id, body.Title, body.Notes, body.Priority, body.DueDate), cancellationToken);
-            return Results.Created($"/api/todolists/{id}/items/{itemId}", new { id = itemId });
+            return Results.Created($"/api/v1/todolists/{id}/items/{itemId}", new { id = itemId });
         })
         .WithName("AddTodoItem")
         .WithSummary("Adds a new item to a todo list.")
