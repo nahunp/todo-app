@@ -3,28 +3,33 @@
 
   <div class="controls">
     <input #nameInput placeholder="New list name" />
-    <button (click)="create(nameInput.value); nameInput.value = ''">Create</button>
-    <button (click)="load()">Refresh</button>
+    <button class="btn btn-primary" (click)="create(nameInput.value); nameInput.value = ''">Create</button>
+    <button class="btn btn-secondary" (click)="load()">Refresh</button>
   </div>
 
-  <div *ngIf="loading() && !error()" class="loading">Loading…</div>
+  <div *ngIf="loading() && !error()" class="loading">Loading...</div>
   <div *ngIf="error()" class="error">{{ error() }}</div>
 
-  <ul *ngIf="!loading() && todoLists().length">
-    <li *ngFor="let list of todoLists()">
-      <a [routerLink]="['/lists', list.id]">{{ list.name || '(untitled)' }}</a> <small *ngIf="list.id">— {{ list.id }}</small>
+  <div *ngIf="!loading() && todoLists().length" class="list-container">
+    <div *ngFor="let list of todoLists()" class="list-item">
+      <div class="list-content">
+        <a [routerLink]="['/lists', list.id]" class="list-name">{{ list.name || '(untitled)' }}</a>
+        <small class="list-id" *ngIf="list.id">— {{ list.id }}</small>
+      </div>
 
-      <ng-container *ngIf="pendingDeleteListId() !== list.id; else confirmDeleteTpl">
-        <button (click)="startDeleteList(list.id)">Delete</button>
-      </ng-container>
+      <div class="list-actions">
+        <ng-container *ngIf="pendingDeleteListId() !== list.id; else confirmDeleteTpl">
+          <button class="btn btn-secondary" (click)="startDeleteList(list.id)">Delete</button>
+        </ng-container>
 
-      <ng-template #confirmDeleteTpl>
-        <span>Confirm delete?</span>
-        <button (click)="confirmDeleteList(list.id)">Yes</button>
-        <button (click)="cancelDeleteList()">No</button>
-      </ng-template>
-    </li>
-  </ul>
+        <ng-template #confirmDeleteTpl>
+          <span class="confirm-text">Confirm delete?</span>
+          <button class="btn btn-destructive" (click)="confirmDeleteList(list.id)">Yes</button>
+          <button class="btn btn-secondary" (click)="cancelDeleteList()">No</button>
+        </ng-template>
+      </div>
+    </div>
+  </div>
 
-  <div *ngIf="!loading() && !todoLists().length && !error()">No todo lists yet.</div>
+  <div *ngIf="!loading() && !todoLists().length && !error()" class="empty-state">No todo lists yet.</div>
 </div>

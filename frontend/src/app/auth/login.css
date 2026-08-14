@@ -1,4 +1,32 @@
-.auth-form { max-width: 360px; margin: 16px; }
-.auth-form label { display:block; margin-bottom:8px }
-.error { color: #b00020; margin-bottom:8px }
-.success { color: #1b5e20; margin-bottom:8px }
+/* Cloud Dancer auth login styles */
+
+.auth-form {
+  max-width: 360px;
+  margin: 48px auto;
+  padding: 32px;
+  background-color: var(--color-surface);
+  border: 2px solid #ccc;
+}
+
+.auth-form h2 {
+  margin-bottom: 24px;
+}
+
+.error {
+  color: var(--color-accent-2);
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: rgba(225, 68, 89, 0.1);
+  border: 2px solid var(--color-accent-2);
+}
+
+.success {
+  color: var(--tf-success);
+  font-weight: 600;
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: rgba(116, 143, 43, 0.1);
+  border: 2px solid var(--tf-success);
+}
+
