@@ -262,6 +262,20 @@ non-owner can't tell a resource exists at all (OWASP-aligned).
   `GET /api/v1/auth/password-policy` — the only unauthenticated routes.
   Everything under `/api/v1/todolists` requires a valid Bearer token
   (`RequireAuthorization()` on the route group).
+- `DELETE /api/v1/auth/account` — authorized per-route rather than
+  changing the `auth` group's default, since it's the one exception
+  among otherwise-unauthenticated routes. Deletes the caller's own
+  account (never someone else's — no admin-deletes-a-user concept
+  exists). `TodoList.OwnerId`'s foreign key cascades at the database
+  level (`TodoListConfiguration.cs`), so deleting the Identity user
+  deletes their lists and items too — nothing here walks and deletes
+  those manually. Exists because Google Play policy requires apps that
+  support account creation to also offer account deletion; every client
+  sharing this backend (web, Android, future iOS) gets it for free.
+  Verified live, not just unit-tested: registered a real account, created
+  a list, called this endpoint, confirmed login now fails (401) *and*
+  confirmed via `sqlcmd` directly that the list row was actually gone —
+  the cascade, not just the user row, not assumed.
 - **Registration is hardened, since this app is meant to be shared
   publicly**: `AddIdentityCore`'s password policy is set explicitly
   (`Infrastructure/DependencyInjection.cs`) rather than left as unstated

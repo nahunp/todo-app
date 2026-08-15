@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
+using TodoApp.Application.Auth.Commands.DeleteAccount;
 using TodoApp.Application.Auth.Commands.Login;
 using TodoApp.Application.Auth.Commands.Register;
 
@@ -21,10 +22,12 @@ public static class AuthEndpoints
 {
     public static void MapAuthEndpoints(this IEndpointRouteBuilder app)
     {
-        // No .RequireAuthorization() anywhere in this group, deliberately —
-        // these are the only endpoints in the whole API you can call
-        // without a token (register/login because they're how you get one;
-        // password-policy because you need it before you have one).
+        // No .RequireAuthorization() on the group — register/login/
+        // password-policy are the only endpoints in the whole API you can
+        // call without a token (register/login because they're how you get
+        // one; password-policy because you need it before you have one).
+        // /account below is the one exception in this group, authorized
+        // per-route rather than changing that group-wide default.
         var group = app.MapGroup("/api/v1/auth").WithTags("Auth");
 
         group.MapPost("/register", async (RegisterCommand command, ISender sender, CancellationToken cancellationToken) =>
@@ -62,5 +65,22 @@ public static class AuthEndpoints
         .Produces<LoginResult>()
         .Produces(StatusCodes.Status401Unauthorized)
         .ProducesValidationProblem();
+
+        // Google Play policy requires apps that support account creation
+        // to also offer account deletion (in-app or via a web page) — this
+        // is the one endpoint every client (web, Android, future iOS)
+        // shares to satisfy that, rather than each platform inventing its
+        // own story. Deletes the caller's own account only — see
+        // DeleteAccountCommand's doc comment.
+        group.MapDelete("/account", async (ISender sender, CancellationToken cancellationToken) =>
+        {
+            await sender.Send(new DeleteAccountCommand(), cancellationToken);
+            return Results.NoContent();
+        })
+        .RequireAuthorization()
+        .WithName("DeleteAccount")
+        .WithSummary("Permanently deletes the current user's account and all of their data.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status401Unauthorized);
     }
 }

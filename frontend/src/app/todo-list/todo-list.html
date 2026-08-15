@@ -31,4 +31,19 @@
   </div>
 
   <div *ngIf="!loading() && !todoLists().length && !error()" class="empty-state">No todo lists yet.</div>
+
+  <div class="danger-zone">
+    <ng-container *ngIf="!confirmingAccountDeletion(); else confirmDeleteAccountTpl">
+      <button class="btn btn-link danger-link" (click)="startDeleteAccount()">Delete my account</button>
+    </ng-container>
+    <ng-template #confirmDeleteAccountTpl>
+      <span class="confirm-text">
+        Permanently delete your account and all your lists? This can't be undone.
+      </span>
+      <button class="btn btn-destructive" [disabled]="deletingAccount()" (click)="confirmDeleteAccount()">
+        {{ deletingAccount() ? 'Deleting…' : 'Yes, delete everything' }}
+      </button>
+      <button class="btn btn-secondary" [disabled]="deletingAccount()" (click)="cancelDeleteAccount()">Cancel</button>
+    </ng-template>
+  </div>
 </div>
