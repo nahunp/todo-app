@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verification</title>
+  <!--
+    Standalone static page, not part of the Angular app — deliberately so.
+    This exists purely so native mobile clients (Android now, iOS later —
+    see the web repo's CLAUDE.md "Multi-client architecture" section) can
+    get a real Cloudflare Turnstile token without needing a Turnstile SDK
+    for their platform (there isn't one). A native WebView loads this
+    exact page, the widget runs, and the resulting token is handed back to
+    the native app through whichever bridge mechanism it injected.
+
+    Reuses the SAME site key already configured for this domain in the
+    Cloudflare dashboard — nothing new to set up there. Turnstile's domain
+    allowlist is checked against the page's actual origin (this domain),
+    not against "is this a WebView" — so this only works because the page
+    is served from the real, already-registered origin, not from a local
+    file:// URL inside the app bundle.
+  -->
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #F1EFE8;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+  </style>
+</head>
+<body>
+  <div id="turnstile-container"></div>
+  <script>
+    // Cloudflare's own published always-passes test site key — same
+    // committed-dev-default / overwritten-at-deploy pattern as
+    // public/config.js (see that file's own comment for the full
+    // reasoning). frontend-deploy.yml replaces this exact string with the
+    // real production site key as a post-build step; nothing here is
+    // secret either way (Turnstile site keys are meant to ship in client
+    // code — see runtime-config.ts).
+    var SITE_KEY = "1x00000000000000000000AA";
+
+    function sendToken(token) {
+      // Try every bridge a native WebView might have injected, in order.
+      // Harmless to attempt one that isn't there — each is just a
+      // property-existence check first.
+      try {
+        if (window.AndroidCaptchaBridge && window.AndroidCaptchaBridge.onToken) {
+          window.AndroidCaptchaBridge.onToken(token);
+        }
+      } catch (e) {}
+      try {
+        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.captchaBridge) {
+          window.webkit.messageHandlers.captchaBridge.postMessage(token);
+        }
+      } catch (e) {}
+      // Generic fallback for anything else hosting this page (an iframe,
+      // a browser tab opened for manual testing).
+      try {
+        window.parent.postMessage({ type: "turnstile-token", token: token }, "*");
+        if (window.opener) {
+          window.opener.postMessage({ type: "turnstile-token", token: token }, "*");
+        }
+      } catch (e) {}
+    }
+
+    window.onloadTurnstileCallback = function () {
+      window.turnstile.render("#turnstile-container", {
+        sitekey: SITE_KEY,
+        callback: sendToken,
+        "expired-callback": function () { sendToken(""); },
+        "error-callback": function () { sendToken(""); },
+      });
+    };
+  </script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback" async defer></script>
+</body>
+</html>
