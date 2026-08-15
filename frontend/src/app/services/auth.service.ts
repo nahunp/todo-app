@@ -54,6 +54,17 @@ export class AuthService {
     this.isAuthenticated.set(false);
   }
 
+  // Google Play policy requires apps that support account creation to
+  // also offer account deletion (in-app or via a web page) — this is the
+  // web side of that (see the backend's AuthEndpoints.cs DELETE /account
+  // and the Android app's equivalent). Doesn't clear the token itself —
+  // the caller does that via logout() after this succeeds, same as any
+  // other request that needs the auth interceptor's Bearer header
+  // attached before the account (and the token's validity) goes away.
+  deleteAccount() {
+    return this.http.delete<void>(`${this.base}/account`);
+  }
+
   private setToken(token?: string | null) {
     if (token) {
       localStorage.setItem(this.storageKey, token);

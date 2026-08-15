@@ -25,4 +25,14 @@ public interface IIdentityService
     /// half of the pair was wrong.
     /// </summary>
     Task<string?> ValidateCredentialsAsync(string email, string password);
+
+    /// <summary>
+    /// Deletes the account and, transitively, everything it owns - see
+    /// TodoListConfiguration.cs's OwnerId foreign key, which cascades at
+    /// the database level. Google Play policy requires apps that support
+    /// account creation to also offer account deletion (in-app or via a
+    /// web page) - this is what makes that possible on every client
+    /// sharing this backend, not just Android.
+    /// </summary>
+    Task<bool> DeleteAccountAsync(string userId);
 }
