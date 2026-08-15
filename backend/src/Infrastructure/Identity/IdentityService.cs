@@ -40,4 +40,21 @@ public class IdentityService : IIdentityService
 
         return passwordValid ? user.Id : null;
     }
+
+    public async Task<bool> DeleteAccountAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            // Already gone — same end state the caller wanted, not a
+            // failure. Shouldn't happen in practice (userId comes from a
+            // just-validated JWT), but "the thing you asked to delete
+            // doesn't exist" isn't a reason to report failure for a
+            // delete operation specifically.
+            return true;
+        }
+
+        var result = await _userManager.DeleteAsync(user);
+        return result.Succeeded;
+    }
 }
