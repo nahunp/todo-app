@@ -32,4 +32,13 @@ public class FakeIdentityService : IIdentityService
 
         return Task.FromResult<string?>(null);
     }
+
+    public Task<bool> DeleteAccountAsync(string userId)
+    {
+        var email = _usersByEmail.FirstOrDefault(kv => kv.Value.UserId == userId).Key;
+        if (email is not null)
+            _usersByEmail.Remove(email);
+
+        return Task.FromResult(true);
+    }
 }
