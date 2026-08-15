@@ -10,11 +10,53 @@ and *why*, not a changelog.
 
 A Todo app built to learn Clean Architecture, SOLID, and design patterns
 end to end. `backend/` (.NET) + `frontend/` (Angular) + SQL Server, one
-repo. **Android (Gemini-driven) and iOS (DeepSeek-driven) clients are
-planned as separate repos**, each consuming this backend's API — this repo
-doesn't grow `android/`/`ios/` folders; those get their own CLAUDE.md when
-they exist. This repo's job is to keep `backend/` clean enough that any
-client, in any repo, can consume it without guessing.
+repo. **Android** ([`nahunp/todo-app-android`](https://github.com/nahunp/todo-app-android),
+Claude-built — the "Gemini-driven" note in earlier versions of this file
+is stale) **and iOS (still planned, driver TBD) are separate repos**, each
+consuming this backend's API — this repo doesn't grow `android/`/`ios/`
+folders; those get their own CLAUDE.md, which they do. This repo's job is
+to keep `backend/` clean enough that any client, in any repo, can consume
+it without guessing.
+
+## Multi-client architecture — one backend, one database, N clients
+
+Decided explicitly (not just implied): web, Android, and the future iOS
+app all share this **one** backend and this **one** Azure SQL database —
+they are not getting separate backends or separate databases per
+platform. Same reasoning either way:
+
+- **Same account, same data.** A list created on web needs to show up on
+  Android — that only works with one shared database. Separate databases
+  per client would make these three disconnected apps that happen to
+  look alike, not one app on three platforms.
+- **Business logic (ownership rules, domain invariants, validation)
+  stays written once**, here, in `backend/`. Three backends would mean
+  reimplementing and keeping all of it in sync three times.
+- **Budget**: one Azure SQL + one App Service (both free tier) instead
+  of three — this was a real factor, not an afterthought, given the
+  whole deployment is deliberately free-tier.
+- This is *why* the API is versioned (`/api/v1/...` — see the WebApi
+  section above) — introduced specifically so a future breaking change
+  can add `/v2` alongside `/v1` instead of forcing every client to
+  update in lockstep.
+
+What sharing a backend does NOT mean — three things that still need
+client-type-aware handling, not a separate backend:
+
+- **CAPTCHA.** Cloudflare Turnstile (registration) is a web widget with
+  no Android/iOS SDK. Mobile clients need a different verification path
+  (a WebView-hosted challenge, native attestation — Play Integrity /
+  App Attest — gated server-side by client type, or dropping CAPTCHA for
+  mobile and leaning on rate-limiting instead) — a small backend change
+  to accept a different signal per client type, not a fork of the auth
+  system. Still an open decision — see the Android repo's CLAUDE.md,
+  "Open questions."
+- **Push notifications.** One Firebase project can cover Android, iOS,
+  and web together — FCM routes to Android natively and to iOS via APNs
+  under the hood. The one real backend gap: an endpoint to register a
+  device's push token per user (doesn't exist yet).
+- **CORS** is a browser-only concept and doesn't apply to native
+  clients at all — nothing to change there for mobile.
 
 ## Environment reality (don't assume otherwise)
 
