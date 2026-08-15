@@ -2,8 +2,14 @@
   <a routerLink="/lists" class="btn btn-link">← Back</a>
   <h1>Privacy Policy</h1>
   <p>
-    This app stores the email address and (hashed, never plain-text) password
-    you register with, plus whatever todo lists and items you create.
+    This app stores the email address you register with in plain text, and
+    your password as a one-way hash — never in a form that could be
+    reversed to see the real password, not even by us. The database itself
+    is encrypted at rest and in transit (standard protections on the
+    Azure SQL database this runs on), but individual fields like the email
+    aren't separately encrypted on top of that — the same as almost every
+    login system, since the app needs to look accounts up by email to let
+    you sign in. Also stored: whatever todo lists and items you create.
   </p>
   <p class="tag tag-warning">
     Please don't reuse a real password here — use a throwaway one, since this
