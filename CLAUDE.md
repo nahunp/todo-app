@@ -44,13 +44,21 @@ What sharing a backend does NOT mean — three things that still need
 client-type-aware handling, not a separate backend:
 
 - **CAPTCHA.** Cloudflare Turnstile (registration) is a web widget with
-  no Android/iOS SDK. Mobile clients need a different verification path
-  (a WebView-hosted challenge, native attestation — Play Integrity /
-  App Attest — gated server-side by client type, or dropping CAPTCHA for
-  mobile and leaning on rate-limiting instead) — a small backend change
-  to accept a different signal per client type, not a fork of the auth
-  system. Still an open decision — see the Android repo's CLAUDE.md,
-  "Open questions."
+  no Android/iOS SDK. Solved without any backend change at all:
+  `frontend/public/mobile-captcha.html` is a standalone static page
+  (deliberately outside the Angular app) that renders the Turnstile
+  widget using this domain's existing site key — a native client loads
+  it in a WebView, and the resulting token is handed back to the app
+  through whichever bridge that native platform injected (Android's
+  `AndroidCaptchaBridge`, iOS's `webkit.messageHandlers.captchaBridge`,
+  or `window.postMessage` as a generic fallback — see the file's own
+  comment). The backend never knew or cared where a captchaToken came
+  from in the first place (`TurnstileCaptchaService` just verifies
+  whatever token it's given against Cloudflare's siteverify API), so
+  there was nothing to change there. `staticwebapp.config.json`'s
+  navigation-fallback exclude list had to add `html` to its extensions,
+  or Azure Static Web Apps would SPA-rewrite direct requests to this
+  page into `index.html` (the Angular app) instead of serving it.
 - **Push notifications.** One Firebase project can cover Android, iOS,
   and web together — FCM routes to Android natively and to iOS via APNs
   under the hood. The one real backend gap: an endpoint to register a
