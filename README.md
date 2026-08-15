@@ -148,6 +148,7 @@ committing a different value:
 cd frontend
 npm run build -- --configuration production
 'window.__appConfig = { apiBaseUrl: "https://todoapp-api-us3zbx.azurewebsites.net", turnstileSiteKey: "0x4AAAAAAEQFpnAuzJIu2S8Z" };' | Set-Content dist/frontend/browser/config.js -NoNewline
+(Get-Content dist/frontend/browser/mobile-captcha.html) -replace '1x00000000000000000000AA', '0x4AAAAAAEQFpnAuzJIu2S8Z' | Set-Content dist/frontend/browser/mobile-captcha.html
 npx @azure/static-web-apps-cli deploy --app-location dist/frontend/browser --deployment-token <token> --env production
 ```
 The deployment token is in the Static Web App's Azure Portal blade (or
@@ -155,6 +156,9 @@ The deployment token is in the Static Web App's Azure Portal blade (or
 public by design (see `runtime-config.ts`'s doc comment) — safe to write
 here in plain text; it's the paired *secret* key (Azure App Setting
 `Captcha:SecretKey` on the backend) that must never appear in source.
+`mobile-captcha.html` gets the same test-key-swap treatment as
+`config.js` — see that file's own comment for why it exists (Turnstile
+for native mobile clients, which have no Turnstile SDK of their own).
 
 **Known limitation**: Azure SQL's free-tier database is serverless and
 auto-pauses after a period of no activity, taking tens of seconds to
